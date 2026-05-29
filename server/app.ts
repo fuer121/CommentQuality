@@ -112,6 +112,7 @@ export function createApp(options: AppOptions = {}) {
           row.error = error instanceof Error ? error.message : '未知错误';
         }
 
+        updateTaskCounts(task);
         task.updatedAt = new Date().toISOString();
         await upsertTask(task);
       }

@@ -164,6 +164,16 @@ function App() {
     refresh().catch((error) => setMessage(error.message));
   }, []);
 
+  useEffect(() => {
+    const hasRunningTask = selectedTask?.status === 'running' || tasks.some((task) => task.status === 'running');
+    if (!hasRunningTask) return;
+
+    const timer = window.setInterval(() => {
+      refresh().catch((error) => setMessage(error.message));
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [selectedTask?.id, selectedTask?.status, tasks]);
+
   async function uploadFile(file: File) {
     setBusy('upload');
     setMessage('');

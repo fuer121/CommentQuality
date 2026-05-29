@@ -66,3 +66,43 @@ test('legacy simplified prompt defaults are migrated to workflow node prompts', 
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test('task summaries are normalized from row statuses when reading tasks', async () => {
+  const repoRoot = process.cwd();
+  const { tempDir, storage } = await importStorageInTempDataDir();
+
+  try {
+    await fs.mkdir('data', { recursive: true });
+    await fs.writeFile(
+      path.join('data', 'tasks.json'),
+      `${JSON.stringify([
+        {
+          id: 'stale-progress',
+          name: '旧进度任务',
+          fileName: 'comments.xlsx',
+          status: 'running',
+          totalRows: 3,
+          validRows: 2,
+          successRows: 0,
+          failedRows: 0,
+          createdAt: '2026-05-29T00:00:00.000Z',
+          updatedAt: '2026-05-29T00:00:00.000Z',
+          rows: [
+            { id: 'row-1', rowNumber: 2, comment_type: '书评', comment_content: '好看', status: 'completed' },
+            { id: 'row-2', rowNumber: 3, comment_type: '章评', comment_content: '待处理', status: 'running' },
+            { id: 'row-3', rowNumber: 4, comment_type: '', comment_content: '', status: 'invalid' },
+          ],
+        },
+      ])}\n`,
+      'utf8',
+    );
+
+    const [task] = await storage.readTasks();
+
+    assert.equal(task.successRows, 1);
+    assert.equal(task.failedRows, 1);
+  } finally {
+    process.chdir(repoRoot);
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});

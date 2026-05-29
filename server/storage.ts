@@ -192,13 +192,21 @@ async function writeJson<T>(filePath: string, data: T) {
   await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
 
+function normalizeTaskCounts(task: ScoreTask): ScoreTask {
+  return {
+    ...task,
+    successRows: task.rows.filter((row) => row.status === 'completed').length,
+    failedRows: task.rows.filter((row) => row.status === 'failed' || row.status === 'invalid').length,
+  };
+}
+
 export async function readTasks(): Promise<ScoreTask[]> {
   const tasks = await readJson<ScoreTask[]>(tasksPath(), []);
-  return tasks.slice(0, maxTaskHistory);
+  return tasks.slice(0, maxTaskHistory).map(normalizeTaskCounts);
 }
 
 export async function writeTasks(tasks: ScoreTask[]) {
-  await writeJson(tasksPath(), tasks.slice(0, maxTaskHistory));
+  await writeJson(tasksPath(), tasks.slice(0, maxTaskHistory).map(normalizeTaskCounts));
 }
 
 export async function upsertTask(task: ScoreTask) {
