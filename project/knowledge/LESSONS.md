@@ -8,6 +8,9 @@
 - 映射默认规则来自飞书参考文档：质量 `[80,100]=好`、`[30,80)=中`、`[0,30)=差`；情绪 `[80,100]=正向`、`[30,80)=中性`、`[0,30)=负向`。
 - 当前目录不是 Git 仓库；进入实现阶段前要先建立 `.gitignore`，避免 `.DS_Store`、`.env`、导入数据和导出结果进入版本库。
 - 2026-05-29 已将空远端 `git@github.com:fuer121/CommentQuality.git` 初始化为 `origin`，首个基线提交为 `5c9b9a6 chore: establish project baseline`，`main` 已跟踪 `origin/main`。
+- Dify App API 可运行 `/workflows/run`，但当前未暴露工作流节点读写端点；Prompt 默认值先以目标 YAML 中对应节点的完整 Prompt 为准，不能用前端/后端临时压缩文案冒充线上节点默认值。
+- 浏览器侧发现中文 Excel 文件名乱码时，根因是上传文件名被按 latin1 解释；服务端需要在保存任务前对疑似 mojibake 的 `originalname` 做 UTF-8 还原。
+- 配置默认值升级要考虑已有 `data/config.json`：如果用户保存过早期简化默认 Prompt，读取配置时应自动迁移到新的工作流节点完整 Prompt，同时保留用户自定义 Prompt。
 
 ## 复用规则
 
