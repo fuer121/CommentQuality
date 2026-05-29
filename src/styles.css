@@ -212,6 +212,8 @@ h1, h2, h3, p { margin: 0; }
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .action-row input {
   width: 210px;
@@ -238,6 +240,10 @@ th {
   font-weight: 600;
 }
 tr.selected td { background: #f4f8ff; }
+.task-table {
+  max-height: 126px;
+  overflow-y: auto;
+}
 .task-table tr { cursor: pointer; }
 
 .result-table {

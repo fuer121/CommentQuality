@@ -8,6 +8,7 @@ import {
   FileSpreadsheet,
   Loader2,
   MessageSquareText,
+  Pause,
   Play,
   RefreshCw,
   Save,
@@ -18,7 +19,7 @@ import {
 import './styles.css';
 
 type CommentType = '书评' | '章评' | '段评';
-type TaskStatus = 'created' | 'running' | 'completed' | 'completed_with_errors' | 'failed';
+type TaskStatus = 'created' | 'running' | 'paused' | 'completed' | 'completed_with_errors' | 'failed';
 type RowStatus = 'pending' | 'running' | 'completed' | 'failed' | 'invalid';
 
 interface MappingRule {
@@ -102,6 +103,7 @@ function statusLabel(status: TaskStatus | RowStatus) {
   const labels: Record<string, string> = {
     created: '待处理',
     running: '运行中',
+    paused: '已暂停',
     completed: '已完成',
     completed_with_errors: '部分失败',
     failed: '失败',
@@ -119,6 +121,13 @@ function classForLevel(level?: string) {
   if (level === '好' || level === '正向') return 'good';
   if (level === '中' || level === '中性') return 'mid';
   if (level === '差' || level === '负向') return 'bad';
+  return 'neutral';
+}
+
+function classForStatus(status: TaskStatus | RowStatus) {
+  if (status === 'failed' || status === 'invalid' || status === 'completed_with_errors') return 'bad';
+  if (status === 'running' || status === 'paused') return 'mid';
+  if (status === 'completed') return 'good';
   return 'neutral';
 }
 
@@ -143,11 +152,11 @@ function App() {
     setHealth(healthData);
     setConfig(configData);
     setTasks(taskData);
-    if (selectedTask) {
-      const updated = await api<ScoreTask>(`/api/tasks/${selectedTask.id}`);
-      setSelectedTask(updated);
-    } else if (taskData[0]) {
-      setSelectedTask(await api<ScoreTask>(`/api/tasks/${taskData[0].id}`));
+    const nextTaskId = selectedTask && taskData.some((task) => task.id === selectedTask.id) ? selectedTask.id : taskData[0]?.id;
+    if (nextTaskId) {
+      setSelectedTask(await api<ScoreTask>(`/api/tasks/${nextTaskId}`));
+    } else {
+      setSelectedTask(null);
     }
   }
 
@@ -176,6 +185,7 @@ function App() {
   async function runTask(mode: 'all' | 'failed' = 'all') {
     if (!selectedTask) return;
     setBusy('run');
+    setSelectedTask({ ...selectedTask, status: 'running' });
     setMessage('正在调用 Dify 工作流跑分...');
     try {
       const task = await api<ScoreTask>(`/api/tasks/${selectedTask.id}/run`, {
@@ -185,9 +195,41 @@ function App() {
       });
       setSelectedTask(task);
       await refresh();
-      setMessage('跑分完成');
+      setMessage(task.status === 'paused' ? '任务已暂停' : '跑分完成');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '跑分失败');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function pauseTask() {
+    if (!selectedTask) return;
+    setBusy('pause');
+    try {
+      const task = await api<ScoreTask>(`/api/tasks/${selectedTask.id}/pause`, { method: 'POST' });
+      setSelectedTask(task);
+      await refresh();
+      setMessage('任务已暂停，将在当前评论处理完成后停止继续跑分');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '暂停失败');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function continueTask() {
+    if (!selectedTask) return;
+    setBusy('run');
+    setSelectedTask({ ...selectedTask, status: 'running' });
+    setMessage('正在继续跑分...');
+    try {
+      const task = await api<ScoreTask>(`/api/tasks/${selectedTask.id}/continue`, { method: 'POST' });
+      setSelectedTask(task);
+      await refresh();
+      setMessage(task.status === 'paused' ? '任务已暂停' : '跑分完成');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '继续失败');
     } finally {
       setBusy('');
     }
@@ -230,6 +272,8 @@ function App() {
   }, [selectedTask, query]);
 
   const activeTaskId = selectedTask?.id;
+  const canPause = selectedTask?.status === 'running';
+  const canContinue = selectedTask?.status === 'paused';
 
   return (
     <main className="app-shell">
@@ -310,7 +354,7 @@ function App() {
                         <td>{task.name}</td>
                         <td>{task.fileName}</td>
                         <td>{task.successRows}/{task.validRows}</td>
-                        <td><span className={`pill ${task.status.includes('error') || task.status === 'failed' ? 'bad' : task.status === 'running' ? 'mid' : 'good'}`}>{statusLabel(task.status)}</span></td>
+                        <td><span className={`pill ${classForStatus(task.status)}`}>{statusLabel(task.status)}</span></td>
                         <td>{formatDate(task.createdAt)}</td>
                       </tr>
                     ))}
@@ -328,8 +372,16 @@ function App() {
                 </div>
                 <div className="action-row">
                   <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索评论内容" />
-                  <button className="secondary-button" disabled={!selectedTask || busy === 'run'} onClick={() => runTask('failed')}>重跑失败</button>
-                  <button className="primary-button" disabled={!selectedTask || busy === 'run'} onClick={() => runTask('all')}>
+                  <button className="secondary-button" disabled={!selectedTask || busy === 'run' || canPause || canContinue} onClick={() => runTask('failed')}>重跑失败</button>
+                  <button className="secondary-button" disabled={!canPause || busy === 'pause'} onClick={pauseTask}>
+                    {busy === 'pause' ? <Loader2 className="spin" size={16} /> : <Pause size={16} />}
+                    暂停
+                  </button>
+                  <button className="secondary-button" disabled={!canContinue || busy === 'run'} onClick={continueTask}>
+                    <Play size={16} />
+                    继续
+                  </button>
+                  <button className="primary-button" disabled={!selectedTask || busy === 'run' || canPause || canContinue} onClick={() => runTask('all')}>
                     {busy === 'run' ? <Loader2 className="spin" size={16} /> : <Play size={16} />}
                     开始跑分
                   </button>
@@ -354,7 +406,7 @@ function App() {
                         <td><span className={`pill ${classForLevel(row.result?.quality_level)}`}>{row.result?.quality_level ?? '-'}</span></td>
                         <td>{row.result?.emotion_score ?? '-'}</td>
                         <td><span className={`pill ${classForLevel(row.result?.emotion_type)}`}>{row.result?.emotion_type ?? '-'}</span></td>
-                        <td><span className={`pill ${row.status === 'failed' || row.status === 'invalid' ? 'bad' : row.status === 'running' ? 'mid' : row.status === 'completed' ? 'good' : 'neutral'}`}>{statusLabel(row.status)}</span></td>
+                        <td><span className={`pill ${classForStatus(row.status)}`}>{statusLabel(row.status)}</span></td>
                         <td><button className="mini-button" title={row.result?.quality_reason || row.error}>详情</button></td>
                       </tr>
                     ))}

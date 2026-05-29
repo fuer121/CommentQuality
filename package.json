@@ -8,7 +8,7 @@
     "dev:web": "vite --host 0.0.0.0 --port 5194 --strictPort",
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc --noEmit && vite build",
-    "test": "node --import tsx --test server/storage.test.ts",
+    "test": "node --import tsx --test --test-concurrency=1 server/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

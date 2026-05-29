@@ -2,9 +2,19 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { AppConfig, ScoreTask } from './shared/types.js';
 
-const dataDir = path.resolve('data');
-const tasksPath = path.join(dataDir, 'tasks.json');
-const configPath = path.join(dataDir, 'config.json');
+const maxTaskHistory = 5;
+
+function dataDir() {
+  return path.resolve('data');
+}
+
+function tasksPath() {
+  return path.join(dataDir(), 'tasks.json');
+}
+
+function configPath() {
+  return path.join(dataDir(), 'config.json');
+}
 
 const legacyPromptDefaults = {
   bookReview: `你是一个书评内容质量与情绪打标助手。请只评估纯文字书评内容，综合判断评价深度、分析逻辑性、内容完整性和表达质量，输出 quality_score、quality_reason、emotion_score。`,
@@ -165,7 +175,7 @@ function migratePromptDefaults(savedPrompts: Partial<AppConfig['prompts']> | und
 }
 
 async function ensureDataDir() {
-  await fs.mkdir(dataDir, { recursive: true });
+  await fs.mkdir(dataDir(), { recursive: true });
 }
 
 async function readJson<T>(filePath: string, fallback: T): Promise<T> {
@@ -183,11 +193,12 @@ async function writeJson<T>(filePath: string, data: T) {
 }
 
 export async function readTasks(): Promise<ScoreTask[]> {
-  return readJson<ScoreTask[]>(tasksPath, []);
+  const tasks = await readJson<ScoreTask[]>(tasksPath(), []);
+  return tasks.slice(0, maxTaskHistory);
 }
 
 export async function writeTasks(tasks: ScoreTask[]) {
-  await writeJson(tasksPath, tasks);
+  await writeJson(tasksPath(), tasks.slice(0, maxTaskHistory));
 }
 
 export async function upsertTask(task: ScoreTask) {
@@ -202,7 +213,7 @@ export async function upsertTask(task: ScoreTask) {
 }
 
 export async function readConfig(): Promise<AppConfig> {
-  const saved = await readJson<Partial<AppConfig>>(configPath, {});
+  const saved = await readJson<Partial<AppConfig>>(configPath(), {});
   return {
     ...defaultConfig,
     ...saved,
@@ -214,5 +225,5 @@ export async function readConfig(): Promise<AppConfig> {
 }
 
 export async function writeConfig(config: AppConfig) {
-  await writeJson(configPath, { ...config, updatedAt: new Date().toISOString() });
+  await writeJson(configPath(), { ...config, updatedAt: new Date().toISOString() });
 }

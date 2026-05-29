@@ -11,6 +11,8 @@
 - Dify App API 可运行 `/workflows/run`，但当前未暴露工作流节点读写端点；Prompt 默认值先以目标 YAML 中对应节点的完整 Prompt 为准，不能用前端/后端临时压缩文案冒充线上节点默认值。
 - 浏览器侧发现中文 Excel 文件名乱码时，根因是上传文件名被按 latin1 解释；服务端需要在保存任务前对疑似 mojibake 的 `originalname` 做 UTF-8 还原。
 - 配置默认值升级要考虑已有 `data/config.json`：如果用户保存过早期简化默认 Prompt，读取配置时应自动迁移到新的工作流节点完整 Prompt，同时保留用户自定义 Prompt。
+- 当前批量跑分是阻塞式顺序调用 Dify；任务级暂停只能保证“当前单条完成后不再跑下一条”，不能取消已经发出的 Dify 请求。
+- 任务历史上限应在服务端 `readTasks/writeTasks/upsertTask` 统一裁剪，前端只负责滚动展示，避免 UI 和存储保留策略不一致。
 
 ## 复用规则
 

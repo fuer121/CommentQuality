@@ -95,6 +95,8 @@ UI 视觉方向已通过。Dify 注入方式按用户要求改为直接调用线
 - 书评、章评、段评 Prompt 默认值已从 `dify 工作流/社区评论质量评分-书章段评版.yml` 中对应打分节点提取为完整节点 Prompt。
 - 已增加配置迁移：若本地保存的是早期简化默认 Prompt，读取配置时自动升级为工作流节点完整 Prompt。
 - `POST /api/config/inject` 当前返回 501，原因是现有 Dify App API 已验证可运行工作流，但没有暴露线上工作流节点编辑端点。
+- 已支持任务级整体暂停和继续：暂停会在当前 Dify 单条调用完成后停止继续处理，继续会从未完成/失败行接着跑。
+- 任务列表最多保留最新 5 条记录；前端列表默认展示约 2 条高度，支持滚动查看剩余记录。
 
 ## 2026-05-29 验证记录
 
@@ -104,3 +106,11 @@ UI 视觉方向已通过。Dify 注入方式按用户要求改为直接调用线
 - `GET /api/config`：书评/章评/段评 Prompt 长度分别为 988/1012/977，且包含“不要输出quality_level或emotion_type”节点约束。
 - in-app Browser DOM 与交互验证：页面标题为“评论质量打分控制台”；Prompt 来源提示可见；书评/章评/段评标签切换后 textarea 长度分别为 988/1012/977；浏览器控制台无 error/warn。
 - Browser 截图接口 `Page.captureScreenshot` 本轮连续超时，未取得截图证据；已保留 DOM、接口和交互证据。
+
+## 2026-05-29 任务控制验证记录
+
+- `npm test`：通过，覆盖任务列表最多 5 条、任务整体暂停和继续。
+- `npm run typecheck`：通过。
+- `npm run build`：通过。
+- API 验证：连续导入样例后 `GET /api/tasks` 返回 `count=5`。
+- in-app Browser DOM 与交互验证：任务列表 `rowCount=5`，`.task-table` 高度 `126px`，滚动高度 `265px`，`overflow-y=auto`；暂停/继续按钮存在，当前未运行任务下禁用，开始跑分按钮可用；浏览器控制台无 error/warn。
