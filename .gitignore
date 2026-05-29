@@ -1,0 +1,30 @@
+.DS_Store
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build and cache
+dist/
+build/
+.vite/
+.turbo/
+.next/
+coverage/
+
+# Runtime data
+data/
+tmp/
+logs/
+uploads/
+exports/
+
+# Local editor files
+.idea/
+.vscode/
+

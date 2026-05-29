@@ -1,0 +1,1218 @@
+app:
+  description: 针对书评、章评、段评纯文字评论进行质量与情绪打标
+  icon: 🧩
+  icon_background: '#E0F2FE'
+  mode: workflow
+  name: 社区评论质量评分-书章段评版
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.1.43@c56cb5159e37b2719559550518312773bb08e11baaf5b791cccf472d272b5438
+    version: null
+kind: app
+version: 0.5.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: []
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 600
+        batch_count_limit: 5
+        file_size_limit: 600
+        image_file_batch_limit: 10
+        image_file_size_limit: 600
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 600
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods: []
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      id: 1781000000001-source-1781000000002-target
+      selected: false
+      source: '1781000000001'
+      sourceHandle: source
+      target: '1781000000002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1781000000002-source-1781000000003-target
+      selected: false
+      source: '1781000000002'
+      sourceHandle: source
+      target: '1781000000003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1781000000003-true-1781000000010-target
+      selected: false
+      source: '1781000000003'
+      sourceHandle: 'true'
+      target: '1781000000010'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: if-else
+      id: 1781000000003-false-1781000000004-target
+      selected: false
+      source: '1781000000003'
+      sourceHandle: 'false'
+      target: '1781000000004'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1781000000004-true-1781000000020-target
+      selected: false
+      source: '1781000000004'
+      sourceHandle: 'true'
+      target: '1781000000020'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1781000000004-false-1781000000030-target
+      selected: false
+      source: '1781000000004'
+      sourceHandle: 'false'
+      target: '1781000000030'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1781000000010-source-1781000000011-target
+      selected: false
+      source: '1781000000010'
+      sourceHandle: source
+      target: '1781000000011'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1781000000011-source-1781000000012-target
+      selected: false
+      source: '1781000000011'
+      sourceHandle: source
+      target: '1781000000012'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1781000000020-source-1781000000021-target
+      selected: false
+      source: '1781000000020'
+      sourceHandle: source
+      target: '1781000000021'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1781000000021-source-1781000000022-target
+      selected: false
+      source: '1781000000021'
+      sourceHandle: source
+      target: '1781000000022'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1781000000030-source-1781000000031-target
+      selected: false
+      source: '1781000000030'
+      sourceHandle: source
+      target: '1781000000031'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1781000000031-source-1781000000032-target
+      selected: false
+      source: '1781000000031'
+      sourceHandle: source
+      target: '1781000000032'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables:
+        - default: 书评
+          hint: 仅支持书评、章评、段评
+          label: 评论类型
+          max_length: 20
+          options:
+          - 书评
+          - 章评
+          - 段评
+          placeholder: ''
+          required: true
+          type: select
+          variable: comment_type
+        - default: ''
+          hint: 输入需要打标的纯文字评论内容
+          label: 评论内容
+          max_length: 4096
+          options: []
+          placeholder: ''
+          required: true
+          type: paragraph
+          variable: comment_content
+      height: 142
+      id: '1781000000001'
+      position:
+        x: 80
+        y: 322
+      positionAbsolute:
+        x: 80
+        y: 322
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+
+          def main():
+              # 修改这里即可调整 quality_score -> quality_level 的映射。
+              # 区间规则：min <= score <= max；include_max=False 表示不包含上界。
+              quality_level_rules = [
+                  {"label": "好", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中", "min": 30, "max": 80, "include_max": False},
+                  {"label": "差", "min": 0, "max": 30, "include_max": False},
+              ]
+
+              # 修改这里即可调整 emotion_score -> emotion_type 的映射。
+              emotion_type_rules = [
+                  {"label": "正向", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中性", "min": 30, "max": 80, "include_max": False},
+                  {"label": "负向", "min": 0, "max": 30, "include_max": False},
+              ]
+
+              return {
+                  "quality_level_rules": json.dumps(quality_level_rules, ensure_ascii=False),
+                  "emotion_type_rules": json.dumps(emotion_type_rules, ensure_ascii=False),
+              }
+        code_language: python3
+        outputs:
+          emotion_type_rules:
+            children: null
+            type: string
+          quality_level_rules:
+            children: null
+            type: string
+        selected: false
+        title: 可配置映射规则
+        type: code
+        variables: []
+      height: 52
+      id: '1781000000002'
+      position:
+        x: 392
+        y: 344
+      positionAbsolute:
+        x: 392
+        y: 344
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: book-review-condition
+            value: 书评
+            varType: string
+            variable_selector:
+            - '1781000000001'
+            - comment_type
+          id: 'true'
+          logical_operator: and
+        selected: false
+        title: 是否书评
+        type: if-else
+      height: 124
+      id: '1781000000003'
+      position:
+        x: 704
+        y: 344
+      positionAbsolute:
+        x: 704
+        y: 344
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: chapter-comment-condition
+            value: 章评
+            varType: string
+            variable_selector:
+            - '1781000000001'
+            - comment_type
+          id: 'true'
+          logical_operator: and
+        selected: false
+        title: 是否章评
+        type: if-else
+      height: 124
+      id: '1781000000004'
+      position:
+        x: 1016
+        y: 494
+      positionAbsolute:
+        x: 1016
+        y: 494
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 书评独立评分 Prompt
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: qwen-plus-latest
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 1781000001010-system
+          role: system
+          text: |
+            你是一个书评内容质量与情绪打标助手。你只评估用户输入的纯文字评论内容，不评估图片、链接、昵称或外部上下文。
+
+            【输入字段说明】
+            - 评论类型：固定为“书评”
+            - 评论内容：必填，需要评估的书评文本
+
+            【综合质量评分】
+            请根据以下维度综合给出0-100分的质量分数：
+            1. 综合评价深度：是否涉及书籍情节的具体分析、人物性格发展和塑造、主题思想和价值意义，以及个人阅读感受和反思。
+            2. 分析逻辑性：观点是否有理有据，是否引用或指向具体内容，论证是否连贯，逻辑是否清晰。
+            3. 内容完整性：评价是否较全面，是否包含优缺点分析，是否有明确评价立场和评价标准。
+            4. 表达质量：语句是否通顺，表达是否清晰，结构是否合理，用词是否准确并适合阅读场景。
+
+            【质量评分标准】
+            - 0分：空文本、纯乱码、完全不可理解。
+            - 1-29分：极差，文本无意义、完全不相关、广告导流、纯灌水或表达严重混乱。
+            - 30-49分：差，内容极其简单空洞，基本无评价价值，或表达有明显问题。
+            - 50-69分：中等，内容基本完整，有一定观点或阅读感受，但不够深入。
+            - 70-84分：良好，内容较丰富，观点明确，表达流畅，有一定分析深度。
+            - 85-100分：优秀，内容深入全面，分析透彻，表达精炼有力，逻辑清晰。
+
+            【特别说明】
+            - 简单评价如“好看”“推荐”“一般”不判0分，通常给50-69分。
+            - 无意义灌水、乱码、纯符号堆砌可给0-29分。
+            - 书评通常比章评、段评更关注整体结构、分析深度和评价完整性。
+
+            【情绪分析】
+            请给出0-100分情绪分数：
+            - 0-29分：明显负向，表达强烈不满、愤怒、失望、反感。
+            - 30-79分：中性或混合情绪，包括客观陈述、轻微倾向、理性批评、情绪不明显。
+            - 80-100分：明显正向，表达明确喜欢、认可、感动、兴奋或强烈推荐。
+            情绪分数只表示文字情绪倾向，不代表内容质量。
+
+            【输出格式】
+            只输出严格JSON，不要输出Markdown，不要添加额外解释。不要输出quality_level或emotion_type，这两个字段由后续映射节点生成。
+            {
+              "quality_score": 0-100的整数,
+              "quality_reason": "评分理由，需说明质量等级倾向和主要原因",
+              "emotion_score": 0-100的整数
+            }
+        - id: 1781000001010-user
+          role: user
+          text: |
+            {
+              "comment_type": {{#1781000000001.comment_type#}},
+              "comment_content": {{#1781000000001.comment_content#}}
+            }
+        selected: false
+        structured_output_enabled: false
+        title: 书评打分 Prompt
+        type: llm
+        vision:
+          enabled: false
+      height: 116
+      id: '1781000000010'
+      position:
+        x: 1016
+        y: 182
+      positionAbsolute:
+        x: 1016
+        y: 182
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 章评独立评分 Prompt
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: qwen-plus-latest
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 1781000001020-system
+          role: system
+          text: |
+            你是一个章评内容质量与情绪打标助手。你只评估用户输入的纯文字评论内容，不评估图片、链接、昵称或外部上下文。
+
+            【输入字段说明】
+            - 评论类型：固定为“章评”
+            - 评论内容：必填，需要评估的章评文本
+
+            【综合质量评分】
+            请根据以下维度综合给出0-100分的质量分数：
+            1. 剧情讨论价值：是否针对章节具体情节展开讨论，是否有有价值的剧情分析或解读。
+            2. 趣味互动性：是否有幽默、吐槽、玩梗等趣味表达，是否具有引发回复、点赞或讨论的潜力。
+            3. 即时反应质量：是否体现阅读过程中的真实即时感受，是否贴合章节场景和氛围。
+            4. 水评识别准确性：区分纯灌水和简单但有效的互动表达，避免把有趣的简短反应误判为无价值。
+
+            【质量评分标准】
+            - 0分：空文本、纯乱码、完全不可理解。
+            - 1-29分：极差，纯灌水、无意义、广告导流、人身攻击，或与章节讨论完全无关。
+            - 30-49分：差，内容极其简单，相关性弱，基本为水评但尚能理解意图。
+            - 50-69分：中等，基本有趣或有讨论价值，与章节有一定关联但分析较浅。
+            - 70-84分：良好，极具趣味性或剧情分析价值，高度贴合章节内容和氛围。
+            - 85-100分：优秀，深度剧情分析或极强趣味互动，对章节有独到见解或强烈情感共鸣。
+
+            【特别说明】
+            - 简短但有趣的反应，如“笑死”“哈哈哈”“这反转绝了”，可给65-75分。
+            - 网络用语、玩梗内容应适当包容，除非完全无意义。
+            - 看似不严肃但能自然引发互动的章评，可以基于趣味性和互动价值加分。
+            - 纯符号、重复刷屏、无意义灌水仍需低分。
+
+            【情绪分析】
+            请给出0-100分情绪分数：
+            - 0-29分：明显负向，强烈吐槽、抱怨、失望、反感或攻击。
+            - 30-79分：中性或混合情绪，包括客观评论、趣味吐槽、轻微倾向、情绪难分主次。
+            - 80-100分：明显正向，表达明确喜爱、认可、激动、感动或强烈趣味互动。
+            趣味吐槽可能是正向互动，不要简单判为负向。
+
+            【输出格式】
+            只输出严格JSON，不要输出Markdown，不要添加额外解释。不要输出quality_level或emotion_type，这两个字段由后续映射节点生成。
+            {
+              "quality_score": 0-100的整数,
+              "quality_reason": "评分理由，需说明质量等级倾向和主要原因",
+              "emotion_score": 0-100的整数
+            }
+        - id: 1781000001020-user
+          role: user
+          text: |
+            {
+              "comment_type": {{#1781000000001.comment_type#}},
+              "comment_content": {{#1781000000001.comment_content#}}
+            }
+        selected: false
+        structured_output_enabled: false
+        title: 章评打分 Prompt
+        type: llm
+        vision:
+          enabled: false
+      height: 116
+      id: '1781000000020'
+      position:
+        x: 1328
+        y: 494
+      positionAbsolute:
+        x: 1328
+        y: 494
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 段评独立评分 Prompt
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: qwen-plus-latest
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 1781000001030-system
+          role: system
+          text: |
+            你是一个段评内容质量与情绪打标助手。你只评估用户输入的纯文字评论内容，不评估图片、链接、昵称或外部上下文。
+
+            【输入字段说明】
+            - 评论类型：固定为“段评”
+            - 评论内容：必填，需要评估的段评文本
+
+            【综合质量评分】
+            请根据以下维度综合给出0-100分的质量分数：
+            1. 精炼有效性：内容是否简短但信息明确，表达是否清晰直接，是否在有限字数内表达完整意思。
+            2. 水评准确识别：区分纯灌水和有效互动，避免对简单但有效的短表达过度降级。
+            3. 即时性质量：是否体现阅读过程中的即时情绪反应，反应是否自然，是否贴合段落情感和氛围。
+
+            【质量评分标准】
+            - 0分：空文本、纯乱码、完全不可理解。
+            - 1-29分：极差，纯水评、无意义符号堆砌、广告导流、人身攻击，或完全无关联。
+            - 30-49分：差，内容简单空洞、相关性弱，基本为水评但有可理解意图。
+            - 50-69分：中等，有基本互动意义，表达简单直接，有一定情绪或观点。
+            - 70-84分：良好，精炼有力，互动价值较高，情绪或观点表达明确。
+            - 85-100分：优秀，极具精炼性和互动价值，有精准反应、情感共鸣或亮点表达。
+
+            【特别说明】
+            - 段评通常很短，不应仅因简短而判低分。
+            - 单个情绪词如“笑”“哭”“好”“顶”可能是有效互动，应根据表达完整度和互动价值判断。
+            - 符号、表情、标点也是文本表达的一部分，但纯重复刷屏或无意义堆砌应低分。
+            - 表面简单但能完整表达情绪或态度的段评，应给予合理分数。
+
+            【情绪分析】
+            请给出0-100分情绪分数：
+            - 0-29分：明显负向，强烈失望、无语、反感、攻击或直接负面。
+            - 30-79分：中性或混合情绪，包括平淡表达、疑问、轻微倾向、情绪不明显。
+            - 80-100分：明显正向，开心、有趣、赞同、兴奋、感动或强烈认可。
+            段评情绪往往直接、简短，需准确判断短词、标点和语气。
+
+            【输出格式】
+            只输出严格JSON，不要输出Markdown，不要添加额外解释。不要输出quality_level或emotion_type，这两个字段由后续映射节点生成。
+            {
+              "quality_score": 0-100的整数,
+              "quality_reason": "评分理由，需说明质量等级倾向和主要原因",
+              "emotion_score": 0-100的整数
+            }
+        - id: 1781000001030-user
+          role: user
+          text: |
+            {
+              "comment_type": {{#1781000000001.comment_type#}},
+              "comment_content": {{#1781000000001.comment_content#}}
+            }
+        selected: false
+        structured_output_enabled: false
+        title: 段评打分 Prompt
+        type: llm
+        vision:
+          enabled: false
+      height: 116
+      id: '1781000000030'
+      position:
+        x: 1328
+        y: 644
+      positionAbsolute:
+        x: 1328
+        y: 644
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+          import re
+
+          def _extract_json(text):
+              raw = (text or "").strip()
+              if raw.startswith("```"):
+                  raw = re.sub(r"^```(?:json|JSON)?\s*", "", raw)
+                  raw = re.sub(r"\s*```$", "", raw)
+              try:
+                  return json.loads(raw)
+              except Exception:
+                  match = re.search(r"\{[\s\S]*\}", raw)
+                  if match:
+                      try:
+                          return json.loads(match.group(0))
+                      except Exception:
+                          return {}
+              return {}
+
+          def _to_score(value, default=0):
+              try:
+                  score = int(float(str(value).strip()))
+              except Exception:
+                  return default
+              return max(0, min(100, score))
+
+          def _first_score(data, keys, raw, default=0):
+              for key in keys:
+                  if key in data:
+                      return _to_score(data.get(key), default)
+              for key in keys:
+                  pattern = rf'"?{re.escape(key)}"?\s*[:：]\s*"?(\d+)'
+                  match = re.search(pattern, raw or "")
+                  if match:
+                      return _to_score(match.group(1), default)
+              return default
+
+          def _load_rules(text, default_rules):
+              try:
+                  rules = json.loads(text or "")
+                  if isinstance(rules, list):
+                      return rules
+              except Exception:
+                  pass
+              return default_rules
+
+          def _map_label(score, rules, fallback):
+              for rule in rules:
+                  low = int(rule.get("min", 0))
+                  high = int(rule.get("max", 100))
+                  include_max = bool(rule.get("include_max", True))
+                  if score >= low and (score <= high if include_max else score < high):
+                      return str(rule.get("label", fallback))
+              return fallback
+
+          def _normalize_type(value):
+              text = str(value or "").strip()
+              if text in ("书评", "章评", "段评"):
+                  return text
+              aliases = {
+                  "book_review": "书评",
+                  "book_comment": "书评",
+                  "chapter_comment": "章评",
+                  "paragraph_comment": "段评",
+              }
+              return aliases.get(text, text or "未知")
+
+          def main(raw_text: str, comment_type: str, quality_level_rules: str, emotion_type_rules: str):
+              data = _extract_json(raw_text)
+              quality_score = _first_score(data, ["quality_score", "result", "score"], raw_text, 0)
+              emotion_score = _first_score(data, ["emotion_score"], raw_text, 50)
+              reason = str(data.get("quality_reason") or data.get("reason") or "").strip()
+              if not reason:
+                  reason = "模型输出解析失败或理由为空，已按兜底规则处理。"
+
+              default_quality_rules = [
+                  {"label": "好", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中", "min": 30, "max": 80, "include_max": False},
+                  {"label": "差", "min": 0, "max": 30, "include_max": False},
+              ]
+              default_emotion_rules = [
+                  {"label": "正向", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中性", "min": 30, "max": 80, "include_max": False},
+                  {"label": "负向", "min": 0, "max": 30, "include_max": False},
+              ]
+
+              quality_rules = _load_rules(quality_level_rules, default_quality_rules)
+              emotion_rules = _load_rules(emotion_type_rules, default_emotion_rules)
+
+              return {
+                  "comment_type": _normalize_type(comment_type),
+                  "quality_score": quality_score,
+                  "quality_level": _map_label(quality_score, quality_rules, "中"),
+                  "quality_reason": reason,
+                  "emotion_score": emotion_score,
+                  "emotion_type": _map_label(emotion_score, emotion_rules, "中性"),
+              }
+        code_language: python3
+        outputs:
+          comment_type:
+            children: null
+            type: string
+          emotion_score:
+            children: null
+            type: number
+          emotion_type:
+            children: null
+            type: string
+          quality_level:
+            children: null
+            type: string
+          quality_reason:
+            children: null
+            type: string
+          quality_score:
+            children: null
+            type: number
+        selected: false
+        title: 映射封装输出（书评）
+        type: code
+        variables:
+        - value_selector:
+          - '1781000000010'
+          - text
+          value_type: string
+          variable: raw_text
+        - value_selector:
+          - '1781000000001'
+          - comment_type
+          value_type: string
+          variable: comment_type
+        - value_selector:
+          - '1781000000002'
+          - quality_level_rules
+          value_type: string
+          variable: quality_level_rules
+        - value_selector:
+          - '1781000000002'
+          - emotion_type_rules
+          value_type: string
+          variable: emotion_type_rules
+      height: 52
+      id: '1781000000011'
+      position:
+        x: 1328
+        y: 182
+      positionAbsolute:
+        x: 1328
+        y: 182
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+          import re
+
+          def _extract_json(text):
+              raw = (text or "").strip()
+              if raw.startswith("```"):
+                  raw = re.sub(r"^```(?:json|JSON)?\s*", "", raw)
+                  raw = re.sub(r"\s*```$", "", raw)
+              try:
+                  return json.loads(raw)
+              except Exception:
+                  match = re.search(r"\{[\s\S]*\}", raw)
+                  if match:
+                      try:
+                          return json.loads(match.group(0))
+                      except Exception:
+                          return {}
+              return {}
+
+          def _to_score(value, default=0):
+              try:
+                  score = int(float(str(value).strip()))
+              except Exception:
+                  return default
+              return max(0, min(100, score))
+
+          def _first_score(data, keys, raw, default=0):
+              for key in keys:
+                  if key in data:
+                      return _to_score(data.get(key), default)
+              for key in keys:
+                  pattern = rf'"?{re.escape(key)}"?\s*[:：]\s*"?(\d+)'
+                  match = re.search(pattern, raw or "")
+                  if match:
+                      return _to_score(match.group(1), default)
+              return default
+
+          def _load_rules(text, default_rules):
+              try:
+                  rules = json.loads(text or "")
+                  if isinstance(rules, list):
+                      return rules
+              except Exception:
+                  pass
+              return default_rules
+
+          def _map_label(score, rules, fallback):
+              for rule in rules:
+                  low = int(rule.get("min", 0))
+                  high = int(rule.get("max", 100))
+                  include_max = bool(rule.get("include_max", True))
+                  if score >= low and (score <= high if include_max else score < high):
+                      return str(rule.get("label", fallback))
+              return fallback
+
+          def _normalize_type(value):
+              text = str(value or "").strip()
+              if text in ("书评", "章评", "段评"):
+                  return text
+              aliases = {
+                  "book_review": "书评",
+                  "book_comment": "书评",
+                  "chapter_comment": "章评",
+                  "paragraph_comment": "段评",
+              }
+              return aliases.get(text, text or "未知")
+
+          def main(raw_text: str, comment_type: str, quality_level_rules: str, emotion_type_rules: str):
+              data = _extract_json(raw_text)
+              quality_score = _first_score(data, ["quality_score", "result", "score"], raw_text, 0)
+              emotion_score = _first_score(data, ["emotion_score"], raw_text, 50)
+              reason = str(data.get("quality_reason") or data.get("reason") or "").strip()
+              if not reason:
+                  reason = "模型输出解析失败或理由为空，已按兜底规则处理。"
+
+              default_quality_rules = [
+                  {"label": "好", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中", "min": 30, "max": 80, "include_max": False},
+                  {"label": "差", "min": 0, "max": 30, "include_max": False},
+              ]
+              default_emotion_rules = [
+                  {"label": "正向", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中性", "min": 30, "max": 80, "include_max": False},
+                  {"label": "负向", "min": 0, "max": 30, "include_max": False},
+              ]
+
+              quality_rules = _load_rules(quality_level_rules, default_quality_rules)
+              emotion_rules = _load_rules(emotion_type_rules, default_emotion_rules)
+
+              return {
+                  "comment_type": _normalize_type(comment_type),
+                  "quality_score": quality_score,
+                  "quality_level": _map_label(quality_score, quality_rules, "中"),
+                  "quality_reason": reason,
+                  "emotion_score": emotion_score,
+                  "emotion_type": _map_label(emotion_score, emotion_rules, "中性"),
+              }
+        code_language: python3
+        outputs:
+          comment_type:
+            children: null
+            type: string
+          emotion_score:
+            children: null
+            type: number
+          emotion_type:
+            children: null
+            type: string
+          quality_level:
+            children: null
+            type: string
+          quality_reason:
+            children: null
+            type: string
+          quality_score:
+            children: null
+            type: number
+        selected: false
+        title: 映射封装输出（章评）
+        type: code
+        variables:
+        - value_selector:
+          - '1781000000020'
+          - text
+          value_type: string
+          variable: raw_text
+        - value_selector:
+          - '1781000000001'
+          - comment_type
+          value_type: string
+          variable: comment_type
+        - value_selector:
+          - '1781000000002'
+          - quality_level_rules
+          value_type: string
+          variable: quality_level_rules
+        - value_selector:
+          - '1781000000002'
+          - emotion_type_rules
+          value_type: string
+          variable: emotion_type_rules
+      height: 52
+      id: '1781000000021'
+      position:
+        x: 1640
+        y: 494
+      positionAbsolute:
+        x: 1640
+        y: 494
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+          import re
+
+          def _extract_json(text):
+              raw = (text or "").strip()
+              if raw.startswith("```"):
+                  raw = re.sub(r"^```(?:json|JSON)?\s*", "", raw)
+                  raw = re.sub(r"\s*```$", "", raw)
+              try:
+                  return json.loads(raw)
+              except Exception:
+                  match = re.search(r"\{[\s\S]*\}", raw)
+                  if match:
+                      try:
+                          return json.loads(match.group(0))
+                      except Exception:
+                          return {}
+              return {}
+
+          def _to_score(value, default=0):
+              try:
+                  score = int(float(str(value).strip()))
+              except Exception:
+                  return default
+              return max(0, min(100, score))
+
+          def _first_score(data, keys, raw, default=0):
+              for key in keys:
+                  if key in data:
+                      return _to_score(data.get(key), default)
+              for key in keys:
+                  pattern = rf'"?{re.escape(key)}"?\s*[:：]\s*"?(\d+)'
+                  match = re.search(pattern, raw or "")
+                  if match:
+                      return _to_score(match.group(1), default)
+              return default
+
+          def _load_rules(text, default_rules):
+              try:
+                  rules = json.loads(text or "")
+                  if isinstance(rules, list):
+                      return rules
+              except Exception:
+                  pass
+              return default_rules
+
+          def _map_label(score, rules, fallback):
+              for rule in rules:
+                  low = int(rule.get("min", 0))
+                  high = int(rule.get("max", 100))
+                  include_max = bool(rule.get("include_max", True))
+                  if score >= low and (score <= high if include_max else score < high):
+                      return str(rule.get("label", fallback))
+              return fallback
+
+          def _normalize_type(value):
+              text = str(value or "").strip()
+              if text in ("书评", "章评", "段评"):
+                  return text
+              aliases = {
+                  "book_review": "书评",
+                  "book_comment": "书评",
+                  "chapter_comment": "章评",
+                  "paragraph_comment": "段评",
+              }
+              return aliases.get(text, text or "未知")
+
+          def main(raw_text: str, comment_type: str, quality_level_rules: str, emotion_type_rules: str):
+              data = _extract_json(raw_text)
+              quality_score = _first_score(data, ["quality_score", "result", "score"], raw_text, 0)
+              emotion_score = _first_score(data, ["emotion_score"], raw_text, 50)
+              reason = str(data.get("quality_reason") or data.get("reason") or "").strip()
+              if not reason:
+                  reason = "模型输出解析失败或理由为空，已按兜底规则处理。"
+
+              default_quality_rules = [
+                  {"label": "好", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中", "min": 30, "max": 80, "include_max": False},
+                  {"label": "差", "min": 0, "max": 30, "include_max": False},
+              ]
+              default_emotion_rules = [
+                  {"label": "正向", "min": 80, "max": 100, "include_max": True},
+                  {"label": "中性", "min": 30, "max": 80, "include_max": False},
+                  {"label": "负向", "min": 0, "max": 30, "include_max": False},
+              ]
+
+              quality_rules = _load_rules(quality_level_rules, default_quality_rules)
+              emotion_rules = _load_rules(emotion_type_rules, default_emotion_rules)
+
+              return {
+                  "comment_type": _normalize_type(comment_type),
+                  "quality_score": quality_score,
+                  "quality_level": _map_label(quality_score, quality_rules, "中"),
+                  "quality_reason": reason,
+                  "emotion_score": emotion_score,
+                  "emotion_type": _map_label(emotion_score, emotion_rules, "中性"),
+              }
+        code_language: python3
+        outputs:
+          comment_type:
+            children: null
+            type: string
+          emotion_score:
+            children: null
+            type: number
+          emotion_type:
+            children: null
+            type: string
+          quality_level:
+            children: null
+            type: string
+          quality_reason:
+            children: null
+            type: string
+          quality_score:
+            children: null
+            type: number
+        selected: false
+        title: 映射封装输出（段评）
+        type: code
+        variables:
+        - value_selector:
+          - '1781000000030'
+          - text
+          value_type: string
+          variable: raw_text
+        - value_selector:
+          - '1781000000001'
+          - comment_type
+          value_type: string
+          variable: comment_type
+        - value_selector:
+          - '1781000000002'
+          - quality_level_rules
+          value_type: string
+          variable: quality_level_rules
+        - value_selector:
+          - '1781000000002'
+          - emotion_type_rules
+          value_type: string
+          variable: emotion_type_rules
+      height: 52
+      id: '1781000000031'
+      position:
+        x: 1640
+        y: 644
+      positionAbsolute:
+        x: 1640
+        y: 644
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1781000000011'
+          - comment_type
+          value_type: string
+          variable: comment_type
+        - value_selector:
+          - '1781000000011'
+          - quality_score
+          value_type: number
+          variable: quality_score
+        - value_selector:
+          - '1781000000011'
+          - quality_level
+          value_type: string
+          variable: quality_level
+        - value_selector:
+          - '1781000000011'
+          - quality_reason
+          value_type: string
+          variable: quality_reason
+        - value_selector:
+          - '1781000000011'
+          - emotion_score
+          value_type: number
+          variable: emotion_score
+        - value_selector:
+          - '1781000000011'
+          - emotion_type
+          value_type: string
+          variable: emotion_type
+        selected: false
+        title: 输出（书评）
+        type: end
+      height: 196
+      id: '1781000000012'
+      position:
+        x: 1640
+        y: 142
+      positionAbsolute:
+        x: 1640
+        y: 142
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1781000000021'
+          - comment_type
+          value_type: string
+          variable: comment_type
+        - value_selector:
+          - '1781000000021'
+          - quality_score
+          value_type: number
+          variable: quality_score
+        - value_selector:
+          - '1781000000021'
+          - quality_level
+          value_type: string
+          variable: quality_level
+        - value_selector:
+          - '1781000000021'
+          - quality_reason
+          value_type: string
+          variable: quality_reason
+        - value_selector:
+          - '1781000000021'
+          - emotion_score
+          value_type: number
+          variable: emotion_score
+        - value_selector:
+          - '1781000000021'
+          - emotion_type
+          value_type: string
+          variable: emotion_type
+        selected: false
+        title: 输出（章评）
+        type: end
+      height: 196
+      id: '1781000000022'
+      position:
+        x: 1952
+        y: 452
+      positionAbsolute:
+        x: 1952
+        y: 452
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1781000000031'
+          - comment_type
+          value_type: string
+          variable: comment_type
+        - value_selector:
+          - '1781000000031'
+          - quality_score
+          value_type: number
+          variable: quality_score
+        - value_selector:
+          - '1781000000031'
+          - quality_level
+          value_type: string
+          variable: quality_level
+        - value_selector:
+          - '1781000000031'
+          - quality_reason
+          value_type: string
+          variable: quality_reason
+        - value_selector:
+          - '1781000000031'
+          - emotion_score
+          value_type: number
+          variable: emotion_score
+        - value_selector:
+          - '1781000000031'
+          - emotion_type
+          value_type: string
+          variable: emotion_type
+        selected: false
+        title: 输出（段评）
+        type: end
+      height: 196
+      id: '1781000000032'
+      position:
+        x: 1952
+        y: 604
+      positionAbsolute:
+        x: 1952
+        y: 604
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.75
+  rag_pipeline_variables: []

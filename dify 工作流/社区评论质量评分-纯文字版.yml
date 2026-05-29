@@ -1,0 +1,251 @@
+app:
+  description: 针对社区评论纯文字内容进行0-100质量评分
+  icon: 🧩
+  icon_background: '#E0F2FE'
+  mode: workflow
+  name: 社区评论质量评分-纯文字版
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.1.43@c56cb5159e37b2719559550518312773bb08e11baaf5b791cccf472d272b5438
+    version: null
+kind: app
+version: 0.5.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: []
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 600
+        batch_count_limit: 5
+        file_size_limit: 600
+        image_file_batch_limit: 10
+        image_file_size_limit: 600
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 600
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods: []
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1780000000001-source-1780000000002-target
+      selected: false
+      source: '1780000000001'
+      sourceHandle: source
+      target: '1780000000002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1780000000002-source-1780000000003-target
+      selected: false
+      source: '1780000000002'
+      sourceHandle: source
+      target: '1780000000003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables:
+        - default: ''
+          hint: 输入需要评分的单条评论文本
+          label: 评论内容
+          max_length: 4096
+          options: []
+          placeholder: ''
+          required: true
+          type: paragraph
+          variable: comment_text
+        - default: ''
+          hint: 可选，用于判断评论是否贴合讨论场景
+          label: 话题/社区场景
+          max_length: 200
+          options: []
+          placeholder: ''
+          required: false
+          type: paragraph
+          variable: topic
+        - default: ''
+          hint: 可选，如帖子正文、楼层上文、书章段落等纯文字上下文
+          label: 关联上文
+          max_length: 4096
+          options: []
+          placeholder: ''
+          required: false
+          type: paragraph
+          variable: context_text
+      height: 167
+      id: '1780000000001'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 社区评论纯文字质量评分
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: qwen-plus-latest
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 5f6acb04-12a9-49a7-a89e-178000000002
+          role: system
+          text: |
+            你是一个社区评论内容质量评分助手，负责对单条社区评论的纯文字内容进行0-100分质量评分。
+
+            ### 输入字段说明
+            - 评论内容：必填，是唯一必须评分的核心文本。
+            - 话题/社区场景：可选。如果为空，不得因为缺少话题而扣分；如果非空，需要判断评论是否贴合该场景。
+            - 关联上文：可选，仅用于辅助判断相关性和互动价值。如果为空，只按评论文本本身评分。
+
+            ### 绝对原则
+            1. 只评估纯文字，不评估图片、表情包、视频、链接卡片或任何外部内容。
+            2. 0分仅用于文本本身无效或不可理解，不用于惩罚“短、浅、普通”的正常评论。
+            3. 评论质量的核心是：可读、相关、有信息量、有互动价值、表达友善。
+            4. 不要过度脑补上下文；没有输入的背景一律视为未知。
+
+            ### 第一步：有效性判断
+            如果评论内容命中以下任意情况，直接输出0分：
+            - 空文本或仅空白。
+            - 乱码、随机字符、无法被人类理解的词语拼接。
+            - 超过70%为无意义符号、重复标点或纯表情文本。
+
+            以下情况不判0分，但应在后续评分中给出较低或中等分：
+            - 简短情绪表达，如“笑死”“太真实了”“绷不住了”。
+            - 网络用语、梗句、口语化评论。
+            - 简单提问或简单反馈。
+
+            ### 第二步：相关性判断
+            - 如果提供了话题或关联上文：判断评论是否与其相关。
+            - 如果完全不相关，归入极低质量，评分范围为1-29分。
+            - 如果未提供话题和关联上文：不做外部相关性扣分，只按评论自身质量评分。
+
+            ### 第三步：质量层级
+            - 极低质量（1-29分）：无关评论、广告引流、刷屏、恶意辱骂、人身攻击、纯负面宣泄，或只有“沙发”“打卡”“666”等低互动价值内容。
+            - 偏低质量（30-49分）：相关但明显灌水、过短且无实质观点、只有简单情绪或单句表态。评论少于8个汉字且无具体信息时，最高不得超过49分。
+            - 中等质量（50-69分）：相关且表达清楚，有基本观点、事实、感受或提问，但展开不足，互动价值有限。
+            - 较高质量（70-79分）：相关且有明确观点、具体理由、个人经验、补充信息、建设性建议或能自然引发讨论，表达理性友善。
+            - 优秀质量（80-100分）：相关性强，信息密度高，有独特见解、清晰论证、具体细节或高价值经验，能显著提升讨论质量，且表达克制友善。
+
+            ### 封顶规则
+            - 纯辱骂、人身攻击、引战内容：最高29分。
+            - 广告、导流、刷屏、重复灌水：最高29分。
+            - 只有情绪没有观点或信息：最高49分。
+            - 有观点但没有理由或细节支撑：最高69分。
+            - 负面评价如果具体、克制、有理由，可以进入50-69分；只有攻击和宣泄不得超过29分。
+            - 要达到70分以上，必须有具体信息、理由、经验、建议或独立观点。
+            - 要达到80分以上，必须同时具备高信息量、清晰表达、讨论推动价值和友善表达。
+
+            ### 输出要求
+            只输出严格JSON，不要输出Markdown，不要添加额外解释。字段如下：
+            {
+              "score": 0-100的整数,
+              "level": "无效/极低质量/偏低质量/中等质量/较高质量/优秀质量",
+              "is_valid": true或false,
+              "quality_tags": ["最多3个质量标签"],
+              "risk_tags": ["最多3个风险标签，没有则为空数组"],
+              "reason": "简要说明是否有效、是否相关、信息量与互动价值、是否触发封顶规则"
+            }
+        - id: 5f6acb04-12a9-49a7-a89e-178000000003
+          role: user
+          text: |
+            {
+              "comment_text": {{#1780000000001.comment_text#}},
+              "topic": {{#1780000000001.topic#}},
+              "context_text": {{#1780000000001.context_text#}}
+            }
+        selected: false
+        structured_output_enabled: false
+        title: 社区评论质量评分
+        type: llm
+        vision:
+          enabled: false
+      height: 116
+      id: '1780000000002'
+      position:
+        x: 392
+        y: 308
+      positionAbsolute:
+        x: 392
+        y: 308
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1780000000002'
+          - text
+          value_type: string
+          variable: result
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1780000000003'
+      position:
+        x: 704
+        y: 322
+      positionAbsolute:
+        x: 704
+        y: 322
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.9
+  rag_pipeline_variables: []
