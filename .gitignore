@@ -16,6 +16,7 @@ build/
 .turbo/
 .next/
 coverage/
+.playwright-cli/
 
 # Runtime data
 data/

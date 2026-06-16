@@ -19,6 +19,7 @@ export function getDifyStatus() {
 export async function runDifyScore(input: {
   comment_type: CommentType | string;
   comment_content: string;
+  prompt_version?: string;
 }): Promise<{ result: ScoreResult; raw: DifyRunResponse }> {
   const baseUrl = process.env.DIFY_API_BASE_URL?.replace(/\/$/, '');
   const apiKey = process.env.DIFY_API_KEY;

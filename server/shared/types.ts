@@ -1,4 +1,5 @@
 export type CommentType = '书评' | '章评' | '段评';
+export type PromptVersion = 'V1' | 'V2';
 
 export type TaskStatus = 'created' | 'running' | 'paused' | 'completed' | 'completed_with_errors' | 'failed';
 export type RowStatus = 'pending' | 'running' | 'completed' | 'failed' | 'invalid';
@@ -17,7 +18,9 @@ export interface PromptConfig {
 }
 
 export interface AppConfig {
+  promptVersion: PromptVersion;
   prompts: PromptConfig;
+  promptVersions: Record<PromptVersion, PromptConfig>;
   qualityRules: MappingRule[];
   emotionRules: MappingRule[];
   updatedAt: string;

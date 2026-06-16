@@ -125,3 +125,13 @@ UI 视觉方向已通过。Dify 注入方式按用户要求改为直接调用线
 - `npm run build`：通过。
 - API 验证：当前运行任务 `GET /api/tasks` 返回进度 `159/552`。
 - in-app Browser DOM 验证：首页第一条运行中任务进度显示 `159/552`；页面无框架错误覆盖层；浏览器控制台无 error/warn。
+
+## 2026-06-16 运行中任务消失修复记录
+
+- 根因：任务运行时后端频繁写 `data/tasks.json`，前端轮询同时读取；旧版 `readJson()` 会把任何 JSON 解析错误都当作 fallback，导致读到半截 JSON 时 `/api/tasks` 返回空数组，页面任务列表和详情看起来突然消失。
+- 修复：本地 JSON 写入改为同目录临时文件写入完成后 `rename` 原子替换；读取时只有 `ENOENT` 才使用 fallback，JSON 解析失败直接抛错，避免静默清空页面状态。
+- `npm test`：通过，新增覆盖损坏 `tasks.json` 不会被当成空任务列表。
+- `npm run typecheck`：通过。
+- `npm run build`：通过。
+- API 验证：服务重启后连续 20 次 `GET /api/tasks` 均返回 3 条任务，没有出现空列表。
+- in-app Browser 验证：页面任务列表展示 3 条任务，运行中任务进度正常，任务详情展示 2539 条明细，无空任务/空明细提示，浏览器控制台无 error/warn。

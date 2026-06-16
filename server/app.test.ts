@@ -10,6 +10,7 @@ import type { ScoreResult, ScoreTask } from './shared/types.js';
 type TestRunScore = (input: {
   comment_type: string;
   comment_content: string;
+  prompt_version?: string;
 }) => Promise<{ result: ScoreResult; raw: unknown }>;
 
 function makeTask(id: string, status: ScoreTask['status'] = 'created', rowCount = 1): ScoreTask {
@@ -168,5 +169,33 @@ test('task can be paused and continued as a whole task', async () => {
     assert.equal(continued.status, 'completed');
     assert.equal(continued.successRows, 1);
     assert.equal(continued.rows[0].status, 'completed');
+  });
+});
+
+test('run task sends selected prompt version when V2 is configured', async () => {
+  let receivedInput: Parameters<TestRunScore>[0] | undefined;
+
+  await withApp([makeTask('prompt-v2', 'created')], async (baseUrl) => {
+    const configResponse = await fetch(`${baseUrl}/api/config`);
+    assert.equal(configResponse.status, 200);
+    const config = await configResponse.json();
+
+    const saveResponse = await fetch(`${baseUrl}/api/config`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...config, promptVersion: 'V2', prompts: config.promptVersions.V2 }),
+    });
+    assert.equal(saveResponse.status, 200);
+
+    const runResponse = await fetch(`${baseUrl}/api/tasks/prompt-v2/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'all' }),
+    });
+    assert.equal(runResponse.status, 200);
+    assert.equal(receivedInput?.prompt_version, 'V2');
+  }, async (input) => {
+    receivedInput = input;
+    return { result: scoreResult(input.comment_type), raw: { test: true } };
   });
 });

@@ -28,6 +28,9 @@ test('defaults use full prompts from workflow scoring nodes', async () => {
     assert.ok(storage.defaultConfig.prompts.bookReview.length > 900);
     assert.ok(storage.defaultConfig.prompts.chapterComment.length > 900);
     assert.ok(storage.defaultConfig.prompts.paragraphComment.length > 900);
+    assert.equal(storage.defaultConfig.promptVersion, 'V1');
+    assert.equal(storage.defaultConfig.promptVersions.V1.bookReview, storage.defaultConfig.prompts.bookReview);
+    assert.match(storage.defaultConfig.promptVersions.V2.paragraphComment, /短泛评默认上限/);
     assert.match(storage.defaultConfig.prompts.bookReview, /不要输出quality_level或emotion_type/);
     assert.match(storage.defaultConfig.prompts.chapterComment, /简短但有趣的反应/);
     assert.match(storage.defaultConfig.prompts.paragraphComment, /段评通常很短/);
@@ -101,6 +104,24 @@ test('task summaries are normalized from row statuses when reading tasks', async
 
     assert.equal(task.successRows, 1);
     assert.equal(task.failedRows, 1);
+  } finally {
+    process.chdir(repoRoot);
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('malformed task storage is not treated as an empty task list', async () => {
+  const repoRoot = process.cwd();
+  const { tempDir, storage } = await importStorageInTempDataDir();
+
+  try {
+    await fs.mkdir('data', { recursive: true });
+    await fs.writeFile(path.join('data', 'tasks.json'), '{"id":', 'utf8');
+
+    await assert.rejects(
+      () => storage.readTasks(),
+      /tasks\.json|Unexpected end of JSON input/,
+    );
   } finally {
     process.chdir(repoRoot);
     await fs.rm(tempDir, { recursive: true, force: true });

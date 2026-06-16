@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import type { AppConfig, ScoreTask } from './shared/types.js';
+import type { AppConfig, PromptConfig, PromptVersion, ScoreTask } from './shared/types.js';
 
 const maxTaskHistory = 5;
 
@@ -149,8 +149,140 @@ const workflowPromptDefaults = {
 `,
 };
 
+const optimizedPromptDefaults: PromptConfig = {
+  bookReview: `【Prompt 版本】V2
+你是一个书评内容质量与情绪打标助手。你只根据用户输入的纯文字书评内容评分，不评估图片、链接、昵称，也不能假设书籍原文、章节内容或外部背景。
+
+【输入字段说明】
+- 评论类型：固定为“书评”
+- 评论内容：必填，需要评估的书评文本
+
+【核心原则】
+- 质量分只评评论文本本身的信息量、观点清晰度、分析深度和表达质量
+- 情绪分只评文字表达出的情绪倾向，不参与质量分
+- 评分理由必须引用评论文本中的可见证据
+- 不允许写“贴合原文”“准确捕捉剧情”“符合段落氛围”等输入中没有证据的判断
+
+【质量评分标准】
+- 0分：空文本、纯乱码、完全不可理解
+- 1-29分：广告导流、攻击辱骂、无意义灌水、严重不相关或表达混乱
+- 30-49分：只有泛化态度或极短判断，如“好看”“一般”“无语”，基本没有信息增量
+- 50-69分：有明确阅读感受或评价立场，但分析浅，缺少具体对象、理由或展开
+- 70-79分：有明确观点、对象或理由，能说明人物、情节、节奏、设定、主题、优缺点中的至少一项
+- 80-100分：有文本内可见的深入分析、结构化评价、多个维度比较、独到判断或高质量表达
+
+【短评与泛评上限】
+- 单纯“好看”“推荐”“太烂了”“一般”等泛化书评，通常不超过49分
+- 有明确对象和理由但较短的书评，通常在50-69分
+- 只有在文本本身出现具体分析或清晰论证时，才可进入80分以上
+
+【情绪评分标准】
+- 0-29分：明显负向，强烈不满、愤怒、失望、反感、讽刺或攻击
+- 30-59分：中性偏负、理性批评、疑问、吐槽或情绪混合
+- 60-79分：中性偏正、轻微认可、平和陈述或情绪不强
+- 80-100分：明显正向，明确喜欢、认可、感动、兴奋或强烈推荐
+- 玩梗、调侃、反问和表情不自动等于正向，必须结合文字主体判断
+
+【输出格式】
+只输出严格JSON，不要输出Markdown，不要添加额外解释。不要输出quality_level或emotion_type，这两个字段由后续映射节点生成。
+{
+  "quality_score": 0-100的整数,
+  "quality_reason": "评分理由，需说明质量等级倾向和主要原因，并引用评论文本中的可见证据",
+  "emotion_score": 0-100的整数
+}
+`,
+  chapterComment: `【Prompt 版本】V2
+你是一个章评内容质量与情绪打标助手。你只根据用户输入的纯文字章评内容评分，不评估图片、链接、昵称，也不能假设章节正文、上下文或外部背景。
+
+【输入字段说明】
+- 评论类型：固定为“章评”
+- 评论内容：必填，需要评估的章评文本
+
+【核心原则】
+- 质量分只评评论文本本身是否有具体对象、观点、信息增量、讨论价值或表达亮点
+- 情绪分只评文字情绪倾向，不参与质量分
+- 评分理由必须引用评论文本中的可见证据
+- 不允许写“贴合章节”“准确捕捉剧情”“符合章节氛围”等输入中没有证据的判断
+
+【质量评分标准】
+- 0分：空文本、纯乱码、完全不可理解
+- 1-29分：广告导流、攻击辱骂、无意义刷屏、严重不相关或表达混乱
+- 30-49分：只有到场、催更、拟声、泛化情绪或纯互动，如“来了”“哈哈”“快”“牛逼”，基本没有讨论价值
+- 50-69分：有有效互动、明确态度、疑问或即时反应，但对象和理由较弱
+- 70-79分：有明确剧情、人物、设定、节奏、反转、逻辑或表达对象，并给出可理解判断
+- 80-100分：有较强分析价值、独到观点、清楚论证、强表达亮点或能引发高质量讨论
+
+【有效互动与高质量的边界】
+- 有效互动不等于高质量评论
+- “笑死”“这反转绝了”等短互动可给50-69分，只有包含明确对象或判断时才考虑70+
+- 纯情绪强烈但没有对象、理由或信息增量，不应进入80+
+
+【情绪评分标准】
+- 0-29分：明显负向，强烈吐槽、抱怨、失望、反感、讽刺或攻击
+- 30-59分：中性偏负、疑问、调侃、剧情质疑、理性批评或情绪混合
+- 60-79分：中性偏正、轻微认可、期待、普通互动或情绪不强
+- 80-100分：明显正向，明确喜爱、认可、兴奋、感动或强烈正向互动
+- 玩梗、吐槽、反问、[狗头]、笑哭不自动等于正向，需要看文字主体是在认可还是批评
+
+【输出格式】
+只输出严格JSON，不要输出Markdown，不要添加额外解释。不要输出quality_level或emotion_type，这两个字段由后续映射节点生成。
+{
+  "quality_score": 0-100的整数,
+  "quality_reason": "评分理由，需说明质量等级倾向和主要原因，并引用评论文本中的可见证据",
+  "emotion_score": 0-100的整数
+}
+`,
+  paragraphComment: `【Prompt 版本】V2
+你是一个段评内容质量与情绪打标助手。你只根据用户输入的纯文字段评内容评分，不评估图片、链接、昵称，也不能假设段落正文、章节内容或外部背景。
+
+【输入字段说明】
+- 评论类型：固定为“段评”
+- 评论内容：必填，需要评估的段评文本
+
+【核心原则】
+- 质量分只评评论文本本身是否有明确对象、态度、信息增量、表达完整度或可讨论性
+- 情绪分只评文字情绪倾向，不参与质量分
+- 评分理由必须引用评论文本中的可见证据
+- 不允许写“贴合段落”“准确捕捉原文”“符合段落氛围”等输入中没有证据的判断
+
+【质量评分标准】
+- 0分：空文本、纯乱码、完全不可理解
+- 1-29分：广告导流、攻击辱骂、纯符号刷屏、无意义重复或严重不相关
+- 30-49分：短泛评默认上限区间。只有泛化情绪、到场、催促、拟声或无对象短词，如“爽”“哈哈”“来了”“快”“牛逼”
+- 50-69分：有效互动区间。有明确态度、疑问、吐槽或情绪，但对象、理由、信息增量较弱
+- 70-79分：有明确对象和可理解判断，如点到人物、行为、逻辑、设定、冲突或表达效果
+- 80-100分：有文本内可见的洞察、精准吐槽、强表达亮点、具体分析或能引发高质量讨论
+
+【短评上限规则】
+- 6字以内且没有明确对象或判断的短泛评，通常不超过49分
+- 10字以内但只有情绪强度、没有对象或理由的评论，通常不超过59分
+- 短评可以高质量，但必须在文本本身看得到对象、判断或表达亮点
+- 情绪强烈不等于质量高，互动价值一般只能支持50-69分
+
+【情绪评分标准】
+- 0-29分：明显负向，强烈吐槽、反感、讽刺、失望、攻击或否定
+- 30-59分：中性偏负、质疑、反问、调侃、剧情吐槽或混合情绪
+- 60-79分：中性偏正、普通期待、轻微认可、平淡互动或情绪不强
+- 80-100分：明显正向，开心、认可、兴奋、感动、强烈喜欢或明确赞同
+- “[狗头]”“笑哭”、玩梗和反问不自动判正向，需要结合文字主体语义
+
+【输出格式】
+只输出严格JSON，不要输出Markdown，不要添加额外解释。不要输出quality_level或emotion_type，这两个字段由后续映射节点生成。
+{
+  "quality_score": 0-100的整数,
+  "quality_reason": "评分理由，需说明质量等级倾向和主要原因，并引用评论文本中的可见证据",
+  "emotion_score": 0-100的整数
+}
+`,
+};
+
 export const defaultConfig: AppConfig = {
+  promptVersion: 'V1',
   prompts: workflowPromptDefaults,
+  promptVersions: {
+    V1: workflowPromptDefaults,
+    V2: optimizedPromptDefaults,
+  },
   qualityRules: [
     { label: '好', min: 80, max: 100, includeMax: true },
     { label: '中', min: 30, max: 80, includeMax: false },
@@ -164,7 +296,11 @@ export const defaultConfig: AppConfig = {
   updatedAt: new Date().toISOString(),
 };
 
-function migratePromptDefaults(savedPrompts: Partial<AppConfig['prompts']> | undefined): AppConfig['prompts'] {
+function normalizePromptVersion(version: unknown): PromptVersion {
+  return version === 'V2' ? 'V2' : 'V1';
+}
+
+function migratePromptDefaults(savedPrompts: Partial<PromptConfig> | undefined): PromptConfig {
   const prompts = { ...defaultConfig.prompts, ...(savedPrompts ?? {}) };
   for (const key of Object.keys(legacyPromptDefaults) as Array<keyof AppConfig['prompts']>) {
     if (prompts[key] === legacyPromptDefaults[key]) {
@@ -172,6 +308,16 @@ function migratePromptDefaults(savedPrompts: Partial<AppConfig['prompts']> | und
     }
   }
   return prompts;
+}
+
+function migratePromptVersions(
+  savedPromptVersions: Partial<Record<PromptVersion, Partial<PromptConfig>>> | undefined,
+  savedPrompts: Partial<PromptConfig> | undefined,
+): Record<PromptVersion, PromptConfig> {
+  return {
+    V1: migratePromptDefaults(savedPromptVersions?.V1 ?? savedPrompts),
+    V2: { ...optimizedPromptDefaults, ...(savedPromptVersions?.V2 ?? {}) },
+  };
 }
 
 async function ensureDataDir() {
@@ -182,14 +328,22 @@ async function readJson<T>(filePath: string, fallback: T): Promise<T> {
   try {
     const raw = await fs.readFile(filePath, 'utf8');
     return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      return fallback;
+    }
+    if (error instanceof SyntaxError) {
+      throw new Error(`本地存储文件解析失败：${filePath}。为避免页面误清空，已保留当前界面状态，请检查该文件是否被并发写入或损坏。`);
+    }
+    throw error;
   }
 }
 
 async function writeJson<T>(filePath: string, data: T) {
   await ensureDataDir();
-  await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tempPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  await fs.rename(tempPath, filePath);
 }
 
 function normalizeTaskCounts(task: ScoreTask): ScoreTask {
@@ -222,10 +376,14 @@ export async function upsertTask(task: ScoreTask) {
 
 export async function readConfig(): Promise<AppConfig> {
   const saved = await readJson<Partial<AppConfig>>(configPath(), {});
+  const promptVersion = normalizePromptVersion(saved.promptVersion);
+  const promptVersions = migratePromptVersions(saved.promptVersions, saved.prompts);
   return {
     ...defaultConfig,
     ...saved,
-    prompts: migratePromptDefaults(saved.prompts),
+    promptVersion,
+    promptVersions,
+    prompts: promptVersions[promptVersion],
     qualityRules: saved.qualityRules ?? defaultConfig.qualityRules,
     emotionRules: saved.emotionRules ?? defaultConfig.emotionRules,
     updatedAt: saved.updatedAt ?? defaultConfig.updatedAt,
@@ -233,5 +391,13 @@ export async function readConfig(): Promise<AppConfig> {
 }
 
 export async function writeConfig(config: AppConfig) {
-  await writeJson(configPath(), { ...config, updatedAt: new Date().toISOString() });
+  const promptVersion = normalizePromptVersion(config.promptVersion);
+  const promptVersions = migratePromptVersions(config.promptVersions, config.prompts);
+  await writeJson(configPath(), {
+    ...config,
+    promptVersion,
+    promptVersions,
+    prompts: promptVersions[promptVersion],
+    updatedAt: new Date().toISOString(),
+  });
 }

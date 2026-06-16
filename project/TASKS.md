@@ -115,6 +115,24 @@ API 探测：`project/tasks/003-dify-api-probe.md`
 - `project/knowledge/LESSONS.md` 更新。
 - Git 状态清楚，提交说明能解释变更范围。
 
+## 阶段 6：质量/情绪 Prompt 优化
+
+状态：V2 Prompt 与离线评估产物已实现，严格准确率待人工标注
+
+任务文件：`project/tasks/004-prompt-optimization.md`
+
+目标：基于已跑结果分析 V1 误放问题，建立人工标注样本，输出 V2 Prompt，并支持本地网站切换 V1/V2 版本
+
+验收：
+
+- `project/prompt-optimization/accuracy-conclusion.md` 输出当前准确度结论
+- `project/prompt-optimization/labeling-sample.csv` 输出 180 条人工标注样本
+- `project/prompt-optimization/v1-v2-difference-samples.csv` 输出已发现异常样本的 V1 当前结果与 V2 目标口径
+- `project/prompt-optimization/v2-prompts.md` 输出书评、章评、段评 V2 Prompt
+- `dify 工作流/社区评论质量评分-书章段评版-prompt-version.yml` 保留 V1 节点并写入 V2 节点
+- 前端 Prompt 管理支持选择 V1/V2
+- 后端仅在选择 V2 时传入 `prompt_version: V2`
+
 ## 当前阻塞
 
 - Dify App API 已验证可运行 `/workflows/run`，但未暴露线上工作流节点读取或编辑接口；Prompt/映射线上注入需要 Dify 管理端/Console API 或其他写权限。

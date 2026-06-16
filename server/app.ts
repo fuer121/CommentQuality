@@ -13,6 +13,7 @@ type RunMode = 'all' | 'failed' | 'remaining';
 type ScoreRunner = (input: {
   comment_type: string;
   comment_content: string;
+  prompt_version?: string;
 }) => Promise<{ result: ScoreResult; raw: unknown }>;
 
 interface AppOptions {
@@ -79,6 +80,8 @@ export function createApp(options: AppOptions = {}) {
     runningTaskIds.add(task.id);
     pauseRequests.delete(task.id);
     try {
+      const config = await readConfig();
+      const promptVersionInput = config.promptVersion === 'V2' ? { prompt_version: 'V2' } : {};
       task.status = 'running';
       task.updatedAt = new Date().toISOString();
 
@@ -103,6 +106,7 @@ export function createApp(options: AppOptions = {}) {
           const { result, raw } = await runScore({
             comment_type: row.comment_type,
             comment_content: row.comment_content,
+            ...promptVersionInput,
           });
           row.status = 'completed';
           row.result = result;

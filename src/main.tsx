@@ -17,8 +17,10 @@ import {
   UploadCloud,
 } from 'lucide-react';
 import './styles.css';
+import { filterTaskRows, type CommentTypeFilter } from './task-row-filters';
 
 type CommentType = '书评' | '章评' | '段评';
+type PromptVersion = 'V1' | 'V2';
 type TaskStatus = 'created' | 'running' | 'paused' | 'completed' | 'completed_with_errors' | 'failed';
 type RowStatus = 'pending' | 'running' | 'completed' | 'failed' | 'invalid';
 
@@ -30,11 +32,13 @@ interface MappingRule {
 }
 
 interface AppConfig {
+  promptVersion: PromptVersion;
   prompts: {
     bookReview: string;
     chapterComment: string;
     paragraphComment: string;
   };
+  promptVersions: Record<PromptVersion, AppConfig['prompts']>;
   qualityRules: MappingRule[];
   emotionRules: MappingRule[];
   updatedAt: string;
@@ -141,16 +145,18 @@ function App() {
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [query, setQuery] = useState('');
+  const [commentTypeFilter, setCommentTypeFilter] = useState<CommentTypeFilter>('全部');
   const fileInput = useRef<HTMLInputElement | null>(null);
 
-  async function refresh() {
+  async function refresh(options: { includeConfig?: boolean } = {}) {
+    const includeConfig = options.includeConfig ?? true;
     const [healthData, configData, taskData] = await Promise.all([
       api<Health>('/api/health'),
-      api<AppConfig>('/api/config'),
+      includeConfig ? api<AppConfig>('/api/config') : Promise.resolve(null),
       api<TaskSummary[]>('/api/tasks'),
     ]);
     setHealth(healthData);
-    setConfig(configData);
+    if (configData) setConfig(configData);
     setTasks(taskData);
     const nextTaskId = selectedTask && taskData.some((task) => task.id === selectedTask.id) ? selectedTask.id : taskData[0]?.id;
     if (nextTaskId) {
@@ -169,7 +175,7 @@ function App() {
     if (!hasRunningTask) return;
 
     const timer = window.setInterval(() => {
-      refresh().catch((error) => setMessage(error.message));
+      refresh({ includeConfig: false }).catch((error) => setMessage(error.message));
     }, 2000);
     return () => window.clearInterval(timer);
   }, [selectedTask?.id, selectedTask?.status, tasks]);
@@ -275,15 +281,35 @@ function App() {
   }
 
   const rows = useMemo(() => {
-    const items = selectedTask?.rows ?? [];
-    const keyword = query.trim();
-    if (!keyword) return items;
-    return items.filter((row) => `${row.comment_type}${row.comment_content}${row.result?.quality_reason ?? ''}`.includes(keyword));
-  }, [selectedTask, query]);
+    return filterTaskRows(selectedTask?.rows ?? [], {
+      query,
+      commentType: commentTypeFilter,
+    });
+  }, [selectedTask, query, commentTypeFilter]);
 
   const activeTaskId = selectedTask?.id;
   const canPause = selectedTask?.status === 'running';
   const canContinue = selectedTask?.status === 'paused';
+  const activePrompts = config?.promptVersions?.[config.promptVersion] ?? config?.prompts;
+
+  function updatePromptVersion(promptVersion: PromptVersion) {
+    if (!config) return;
+    const promptVersions = config.promptVersions ?? { V1: config.prompts, V2: config.prompts };
+    setConfig({ ...config, promptVersion, promptVersions, prompts: promptVersions[promptVersion] });
+  }
+
+  function updatePromptText(value: string) {
+    if (!config) return;
+    const promptVersions = config.promptVersions ?? { V1: config.prompts, V2: config.prompts };
+    const nextPromptVersions = {
+      ...promptVersions,
+      [config.promptVersion]: {
+        ...promptVersions[config.promptVersion],
+        [activePrompt]: value,
+      },
+    };
+    setConfig({ ...config, promptVersions: nextPromptVersions, prompts: nextPromptVersions[config.promptVersion] });
+  }
 
   return (
     <main className="app-shell">
@@ -382,6 +408,12 @@ function App() {
                 </div>
                 <div className="action-row">
                   <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索评论内容" />
+                  <select value={commentTypeFilter} onChange={(event) => setCommentTypeFilter(event.target.value as CommentTypeFilter)}>
+                    <option value="全部">全部类型</option>
+                    <option value="书评">书评</option>
+                    <option value="章评">章评</option>
+                    <option value="段评">段评</option>
+                  </select>
                   <button className="secondary-button" disabled={!selectedTask || busy === 'run' || canPause || canContinue} onClick={() => runTask('failed')}>重跑失败</button>
                   <button className="secondary-button" disabled={!canPause || busy === 'pause'} onClick={pauseTask}>
                     {busy === 'pause' ? <Loader2 className="spin" size={16} /> : <Pause size={16} />}
@@ -430,6 +462,15 @@ function App() {
           <aside className="inspector">
             {config && (
               <>
+                <div className="version-row">
+                  <label>
+                    <span>当前跑分版本</span>
+                    <select value={config.promptVersion} onChange={(event) => updatePromptVersion(event.target.value as PromptVersion)}>
+                      <option value="V1">V1 线上当前版</option>
+                      <option value="V2">V2 误放收紧版</option>
+                    </select>
+                  </label>
+                </div>
                 <div className="tabs">
                   {promptTabs.map((tab) => (
                     <button key={tab.key} className={activePrompt === tab.key ? 'active' : ''} onClick={() => setActivePrompt(tab.key)}>
@@ -438,10 +479,10 @@ function App() {
                   ))}
                 </div>
                 <label className="field-label">提示词编辑</label>
-                <p className="field-hint">默认值来自 Dify 工作流 YAML 基线中对应的书评、章评、段评打分节点。</p>
+                <p className="field-hint">V1 来自 Dify 工作流 YAML 基线节点；V2 为本轮误放收紧版。V2 需导入 prompt-version 工作流后才会在线生效。</p>
                 <textarea
-                  value={config.prompts[activePrompt]}
-                  onChange={(event) => setConfig({ ...config, prompts: { ...config.prompts, [activePrompt]: event.target.value } })}
+                  value={activePrompts?.[activePrompt] ?? ''}
+                  onChange={(event) => updatePromptText(event.target.value)}
                 />
                 <div className="inspector-actions">
                   <button className="primary-button" onClick={saveConfig} disabled={busy === 'save'}><Save size={16} />保存提示词</button>
