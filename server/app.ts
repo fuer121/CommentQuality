@@ -4,17 +4,13 @@ import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import XLSX from 'xlsx';
 import { nanoid } from 'nanoid';
-import { getDifyStatus, runDifyScore } from './dify.js';
+import { getDifyStatus, runDifyScore, type DifyScoreInput } from './dify.js';
 import { parseExcelRows, toExportRows } from './excel.js';
 import { readConfig, readTasks, upsertTask, writeConfig } from './storage.js';
-import type { ScoreResult, ScoreTask, TaskRow } from './shared/types.js';
+import type { MappingRule, ScoreResult, ScoreTask, TaskRow } from './shared/types.js';
 
 type RunMode = 'all' | 'failed' | 'remaining';
-type ScoreRunner = (input: {
-  comment_type: string;
-  comment_content: string;
-  prompt_version?: string;
-}) => Promise<{ result: ScoreResult; raw: unknown }>;
+type ScoreRunner = (input: DifyScoreInput) => Promise<{ result: unknown; raw: unknown }>;
 
 interface AppOptions {
   runScore?: ScoreRunner;
@@ -43,6 +39,60 @@ function shouldRun(row: TaskRow, mode: RunMode) {
 
 function hasRemainingRows(task: ScoreTask) {
   return task.rows.some((row) => row.status !== 'invalid' && row.status !== 'completed');
+}
+
+function toDifyCommentType(commentType: string): DifyScoreInput['type'] {
+  if (commentType === '书评') return 1;
+  if (commentType === '章评') return 2;
+  if (commentType === '段评') return 3;
+  throw new Error(`评论类型不支持：${commentType || '空'}`);
+}
+
+function toDifyScoreInput(row: TaskRow): DifyScoreInput {
+  return {
+    type: toDifyCommentType(row.comment_type),
+    content: row.comment_content,
+    prompt_version: 'V1',
+    is_test: 0,
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+}
+
+function toScoreNumber(value: unknown, fieldName: string) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) {
+    throw new Error(`Dify 返回缺少有效${fieldName}`);
+  }
+  return score;
+}
+
+function labelByRules(score: number, rules: MappingRule[]) {
+  return rules.find((rule) => score >= rule.min && (score < rule.max || (rule.includeMax && score <= rule.max)))?.label;
+}
+
+function normalizeScoreResult(
+  commentType: string,
+  output: unknown,
+  qualityRules: MappingRule[],
+  emotionRules: MappingRule[],
+): ScoreResult {
+  const record = asRecord(output) ?? {};
+  const compact = asRecord(record.result) ?? record;
+  const qualityScore = toScoreNumber(record.quality_score ?? compact.quality_score ?? compact.result, '质量分');
+  const emotionScore = toScoreNumber(record.emotion_score ?? compact.emotion_score, '情绪分');
+  const qualityReason = String(record.quality_reason ?? compact.quality_reason ?? compact.reason ?? '');
+
+  return {
+    comment_type: String(record.comment_type ?? compact.comment_type ?? commentType),
+    quality_score: qualityScore,
+    quality_level: String(record.quality_level ?? compact.quality_level ?? labelByRules(qualityScore, qualityRules) ?? ''),
+    quality_reason: qualityReason,
+    emotion_score: emotionScore,
+    emotion_type: String(record.emotion_type ?? compact.emotion_type ?? labelByRules(emotionScore, emotionRules) ?? ''),
+  };
 }
 
 function updateTaskCounts(task: ScoreTask) {
@@ -81,7 +131,6 @@ export function createApp(options: AppOptions = {}) {
     pauseRequests.delete(task.id);
     try {
       const config = await readConfig();
-      const promptVersionInput = config.promptVersion === 'V2' ? { prompt_version: 'V2' } : {};
       task.status = 'running';
       task.updatedAt = new Date().toISOString();
 
@@ -103,13 +152,9 @@ export function createApp(options: AppOptions = {}) {
         await upsertTask(task);
 
         try {
-          const { result, raw } = await runScore({
-            comment_type: row.comment_type,
-            comment_content: row.comment_content,
-            ...promptVersionInput,
-          });
+          const { result, raw } = await runScore(toDifyScoreInput(row));
           row.status = 'completed';
-          row.result = result;
+          row.result = normalizeScoreResult(row.comment_type, result, config.qualityRules, config.emotionRules);
           row.rawResponse = raw;
         } catch (error) {
           row.status = 'failed';

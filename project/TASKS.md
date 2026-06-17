@@ -117,7 +117,7 @@ API 探测：`project/tasks/003-dify-api-probe.md`
 
 ## 阶段 6：质量/情绪 Prompt 优化
 
-状态：V2 Prompt 与离线评估产物已实现，严格准确率待人工标注
+状态：V2 Prompt 与离线评估产物已实现，严格准确率待人工标注；当前线上跑分固定使用新工作流 V1
 
 任务文件：`project/tasks/004-prompt-optimization.md`
 
@@ -131,7 +131,42 @@ API 探测：`project/tasks/003-dify-api-probe.md`
 - `project/prompt-optimization/v2-prompts.md` 输出书评、章评、段评 V2 Prompt
 - `dify 工作流/社区评论质量评分-书章段评版-prompt-version.yml` 保留 V1 节点并写入 V2 节点
 - 前端 Prompt 管理支持选择 V1/V2
-- 后端仅在选择 V2 时传入 `prompt_version: V2`
+- 前端 Prompt 管理支持本地选择 V1/V2，但当前线上 Dify 跑分固定传入 `prompt_version=V1`
+
+## 阶段 7：Dify 运行入参契约调整
+
+状态：已完成
+
+任务文件：`project/tasks/005-dify-runtime-contract.md`
+
+目标：切换新的线上工作流 API Key，并让后端跑分请求匹配新工作流输入变量
+
+验收：
+
+- 本地 `.env` 使用新工作流 API Key，密钥不进入仓库
+- Dify 输入变量按 `/parameters` 确认为 `type/content/prompt_version/is_test`
+- `书评/章评/段评` 在请求中映射为 `1/2/3`
+- 每次请求固定发送 `prompt_version=V1` 和 `is_test=0`
+- 本地 UI 与导出仍显示中文评论类型
+
+## 阶段 8：Prompt 自循环优化
+
+状态：已完成，V3 Prompt 为离线候选
+
+任务文件：`project/tasks/006-prompt-self-loop-optimization.md`
+
+目标：基于最新完成任务 `评论打分测试02` 的书评、章评、段评结果，自动分析评分问题，沉淀类型独立标准，并输出 V3 Prompt 候选
+
+验收：
+
+- 最新任务完成后才生成正式产物
+- `project/prompt-optimization/self-loop/latest-task-snapshot.md` 记录任务快照和类型分布
+- `project/prompt-optimization/self-loop/type-standards.md` 输出书评、章评、段评独立评分标准
+- `project/prompt-optimization/self-loop/diagnostic-samples.csv` 输出平台视角诊断样本
+- `project/prompt-optimization/self-loop/v3-prompts.md` 输出三类 V3 Prompt
+- `project/prompt-optimization/self-loop/v1-v3-review.md` 输出 V1 到 V3 预期改进结论
+- `project/prompt-optimization/self-loop/v3-replay-validation.md` 输出 V3 小样本离线回放结论
+- `project/prompt-optimization/self-loop/v3-replay-samples.csv` 输出 V3 回放样本表
 
 ## 当前阻塞
 

@@ -1,10 +1,8 @@
-import type { CommentType, ScoreResult } from './shared/types.js';
-
 interface DifyRunResponse {
   workflow_run_id?: string;
   data?: {
     status?: string;
-    outputs?: ScoreResult;
+    outputs?: unknown;
     error?: string;
   };
 }
@@ -16,11 +14,14 @@ export function getDifyStatus() {
   };
 }
 
-export async function runDifyScore(input: {
-  comment_type: CommentType | string;
-  comment_content: string;
-  prompt_version?: string;
-}): Promise<{ result: ScoreResult; raw: DifyRunResponse }> {
+export interface DifyScoreInput {
+  type: 1 | 2 | 3;
+  content: string;
+  prompt_version: 'V1';
+  is_test: 0;
+}
+
+export async function runDifyScore(input: DifyScoreInput): Promise<{ result: unknown; raw: DifyRunResponse }> {
   const baseUrl = process.env.DIFY_API_BASE_URL?.replace(/\/$/, '');
   const apiKey = process.env.DIFY_API_KEY;
   if (!baseUrl || !apiKey) {

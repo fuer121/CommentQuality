@@ -464,7 +464,7 @@ function App() {
               <>
                 <div className="version-row">
                   <label>
-                    <span>当前跑分版本</span>
+                    <span>提示词版本配置</span>
                     <select value={config.promptVersion} onChange={(event) => updatePromptVersion(event.target.value as PromptVersion)}>
                       <option value="V1">V1 线上当前版</option>
                       <option value="V2">V2 误放收紧版</option>
@@ -479,7 +479,7 @@ function App() {
                   ))}
                 </div>
                 <label className="field-label">提示词编辑</label>
-                <p className="field-hint">V1 来自 Dify 工作流 YAML 基线节点；V2 为本轮误放收紧版。V2 需导入 prompt-version 工作流后才会在线生效。</p>
+                <p className="field-hint">当前线上跑分请求固定发送 prompt_version=V1；V2 仅用于本地 Prompt 管理和后续灰度参考。</p>
                 <textarea
                   value={activePrompts?.[activePrompt] ?? ''}
                   onChange={(event) => updatePromptText(event.target.value)}
