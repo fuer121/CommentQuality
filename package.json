@@ -9,6 +9,7 @@
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc --noEmit && vite build",
     "build:prompt-artifacts": "tsx scripts/build-prompt-optimization-artifacts.ts",
+    "build:prompt-self-loop": "tsx scripts/build-prompt-self-loop-artifacts.ts",
     "test": "node --import tsx --test --test-concurrency=1 server/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

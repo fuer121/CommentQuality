@@ -8,10 +8,11 @@ import test from 'node:test';
 import type { ScoreResult, ScoreTask } from './shared/types.js';
 
 type TestRunScore = (input: {
-  comment_type: string;
-  comment_content: string;
-  prompt_version?: string;
-}) => Promise<{ result: ScoreResult; raw: unknown }>;
+  type: 1 | 2 | 3;
+  content?: string;
+  prompt_version: 'V1';
+  is_test: 0;
+}) => Promise<{ result: unknown; raw: unknown }>;
 
 function makeTask(id: string, status: ScoreTask['status'] = 'created', rowCount = 1): ScoreTask {
   const rows = Array.from({ length: rowCount }, (_, index) => ({
@@ -61,9 +62,9 @@ async function withApp(seedTasks: ScoreTask[], run: (baseUrl: string) => Promise
     const appUrl = `${pathToFileURL(path.join(repoRoot, 'server/app.ts')).href}?case=${Date.now()}`;
     const { createApp } = await import(appUrl);
     const app = createApp({
-      runScore: runScore ?? (async ({ comment_type }: { comment_type: string }) => ({
+      runScore: runScore ?? (async () => ({
         result: {
-          comment_type,
+          comment_type: '书评',
           quality_score: 88,
           quality_level: '好',
           quality_reason: '测试跑分结果',
@@ -144,14 +145,14 @@ test('task list progress updates after each completed row while task is still ru
 
     const finalResponse = await runRequest;
     assert.equal(finalResponse.status, 200);
-  }, async ({ comment_type }) => {
+  }, async () => {
     calls += 1;
     if (calls === 1) {
-      return { result: scoreResult(comment_type), raw: { test: true } };
+      return { result: scoreResult('书评'), raw: { test: true } };
     }
     secondRowStarted?.();
     await secondRowGate;
-    return { result: scoreResult(comment_type), raw: { test: true } };
+    return { result: scoreResult('书评'), raw: { test: true } };
   });
 });
 
@@ -172,10 +173,45 @@ test('task can be paused and continued as a whole task', async () => {
   });
 });
 
-test('run task sends selected prompt version when V2 is configured', async () => {
+test('run task sends Dify workflow input contract with mapped comment type codes', async () => {
+  const task = makeTask('dify-contract', 'created', 3);
+  task.rows[0].comment_type = '书评';
+  task.rows[1].comment_type = '章评';
+  task.rows[2].comment_type = '段评';
+  const receivedInputs: Array<Parameters<TestRunScore>[0]> = [];
+
+  await withApp([task], async (baseUrl) => {
+    const runResponse = await fetch(`${baseUrl}/api/tasks/dify-contract/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'all' }),
+    });
+    assert.equal(runResponse.status, 200);
+    assert.deepEqual(
+      receivedInputs.map((input) => input.type),
+      [1, 2, 3],
+    );
+    assert.deepEqual(
+      receivedInputs.map((input) => input.content),
+      ['内容 dify-contract-1', '内容 dify-contract-2', '内容 dify-contract-3'],
+    );
+    assert.ok(receivedInputs.every((input) => input.prompt_version === 'V1'));
+    assert.ok(receivedInputs.every((input) => input.is_test === 0));
+
+    const detailResponse = await fetch(`${baseUrl}/api/tasks/dify-contract`);
+    assert.equal(detailResponse.status, 200);
+    const detail = await detailResponse.json() as ScoreTask;
+    assert.deepEqual(detail.rows.map((row) => row.comment_type), ['书评', '章评', '段评']);
+  }, async (input) => {
+    receivedInputs.push(input);
+    return { result: scoreResult('书评'), raw: { test: true } };
+  });
+});
+
+test('run task always sends V1 to Dify even when local prompt config selects V2', async () => {
   let receivedInput: Parameters<TestRunScore>[0] | undefined;
 
-  await withApp([makeTask('prompt-v2', 'created')], async (baseUrl) => {
+  await withApp([makeTask('fixed-v1', 'created')], async (baseUrl) => {
     const configResponse = await fetch(`${baseUrl}/api/config`);
     assert.equal(configResponse.status, 200);
     const config = await configResponse.json();
@@ -187,15 +223,49 @@ test('run task sends selected prompt version when V2 is configured', async () =>
     });
     assert.equal(saveResponse.status, 200);
 
-    const runResponse = await fetch(`${baseUrl}/api/tasks/prompt-v2/run`, {
+    const runResponse = await fetch(`${baseUrl}/api/tasks/fixed-v1/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'all' }),
     });
     assert.equal(runResponse.status, 200);
-    assert.equal(receivedInput?.prompt_version, 'V2');
+    assert.equal(receivedInput?.prompt_version, 'V1');
+    assert.equal(receivedInput?.is_test, 0);
   }, async (input) => {
     receivedInput = input;
-    return { result: scoreResult(input.comment_type), raw: { test: true } };
+    return { result: scoreResult('书评'), raw: { test: true } };
   });
+});
+
+test('run task normalizes compact Dify result output to local score contract', async () => {
+  await withApp([makeTask('compact-output', 'created')], async (baseUrl) => {
+    const runResponse = await fetch(`${baseUrl}/api/tasks/compact-output/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'all' }),
+    });
+    assert.equal(runResponse.status, 200);
+
+    const detailResponse = await fetch(`${baseUrl}/api/tasks/compact-output`);
+    assert.equal(detailResponse.status, 200);
+    const detail = await detailResponse.json() as ScoreTask;
+    assert.deepEqual(detail.rows[0].result, {
+      comment_type: '书评',
+      quality_score: 55,
+      quality_level: '中',
+      quality_reason: '能看出观点但分析不够深入',
+      emotion_score: 80,
+      emotion_type: '正向',
+    });
+  }, async () => ({
+    result: {
+      result: {
+        result: '55',
+        reason: '能看出观点但分析不够深入',
+        emotion_score: '80',
+        version: 'V1',
+      },
+    },
+    raw: { test: true },
+  }));
 });

@@ -135,3 +135,11 @@ UI 视觉方向已通过。Dify 注入方式按用户要求改为直接调用线
 - `npm run build`：通过。
 - API 验证：服务重启后连续 20 次 `GET /api/tasks` 均返回 3 条任务，没有出现空列表。
 - in-app Browser 验证：页面任务列表展示 3 条任务，运行中任务进度正常，任务详情展示 2539 条明细，无空任务/空明细提示，浏览器控制台无 error/warn。
+
+## 2026-06-16 Dify 运行入参调整记录
+
+- 新工作流 `/parameters` 已确认为 `type/content/prompt_version/is_test`，另有可选 `comment_id` 本轮不传
+- 后端跑分请求改为发送 `type` 数字编码：书评 `1`、章评 `2`、段评 `3`
+- 后端跑分请求固定发送 `prompt_version=V1` 和 `is_test=0`，不再根据本地 Prompt 配置发送 V2
+- 新工作流真实输出为 `outputs.result.result/reason/emotion_score/version`，后端已兼容归一化为网站现有六字段结果
+- 本地任务行、任务列表、结果展示和导出仍保留中文评论类型
