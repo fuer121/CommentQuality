@@ -26,13 +26,17 @@
 - `project/prompt-optimization/self-loop/diagnostic-samples.csv`
 - `project/prompt-optimization/self-loop/v3-prompts.md`
 - `project/prompt-optimization/self-loop/v1-v3-review.md`
+- `project/prompt-optimization/self-loop/v3-replay-validation.md`
+- `project/prompt-optimization/self-loop/v3-replay-samples.csv`
 
 ## 实现变更
 
 - 新增 `server/prompt-self-loop.ts`，提供最新任务选择、完成状态校验、样本补齐、诊断分类和产物渲染能力
 - 新增 `server/prompt-self-loop.test.ts`，覆盖最新任务运行中阻断、fallback 来源标记、V3 输出格式和类型标准生成
 - 新增 `scripts/build-prompt-self-loop-artifacts.ts`，支持从 `data/tasks.json` 生成可复跑产物
+- 新增 `scripts/build-v3-replay-validation.ts`，支持基于诊断样本生成 V3 小样本离线回放报告
 - 新增 npm 命令 `build:prompt-self-loop`
+- 新增 npm 命令 `build:v3-replay`
 
 ## 主要诊断结论
 
@@ -44,6 +48,9 @@
 ## 验证记录
 
 - `node --import tsx --test --test-concurrency=1 server/prompt-self-loop.test.ts`：通过
+- `node --import tsx --test --test-concurrency=1 server/prompt-v3-replay.test.ts`：通过
 - `npm run build:prompt-self-loop -- --task-id bnx2KtM1ia`：通过
-- 产物抽查：快照命中最新任务，诊断样本 37 条，书评 13 条、章评 5 条、段评 19 条
+- `npm run build:v3-replay -- --task-id bnx2KtM1ia`：通过
+- 产物抽查：快照命中最新任务，诊断样本 24 条，书评 2 条、章评 3 条、段评 19 条
+- V3 小样本回放：17 条，`expected_downscore` 8 条，`guardrail_keep_quality` 8 条，`expected_emotion_fix` 1 条
 - 敏感信息检查：自循环产物未发现 API Key 或 Bearer Token

@@ -165,6 +165,8 @@ API 探测：`project/tasks/003-dify-api-probe.md`
 - `project/prompt-optimization/self-loop/diagnostic-samples.csv` 输出平台视角诊断样本
 - `project/prompt-optimization/self-loop/v3-prompts.md` 输出三类 V3 Prompt
 - `project/prompt-optimization/self-loop/v1-v3-review.md` 输出 V1 到 V3 预期改进结论
+- `project/prompt-optimization/self-loop/v3-replay-validation.md` 输出 V3 小样本离线回放结论
+- `project/prompt-optimization/self-loop/v3-replay-samples.csv` 输出 V3 回放样本表
 
 ## 当前阻塞
 

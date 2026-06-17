@@ -136,19 +136,21 @@ function isShortGeneric(row: SourceRow) {
 }
 
 function isOccupancy(row: SourceRow) {
+  const text = normalizeContent(row.comment_content);
   return row.comment_type === '章评'
-    && /打卡|沙发|板凳|脚印|👣|第一|占楼/.test(row.comment_content);
+    && (/打卡|沙发|板凳|脚印|👣/.test(row.comment_content) || /^(第一|占楼)$/.test(text));
 }
 
 function isBookMetadata(row: SourceRow) {
   const content = row.comment_content;
+  const metaMarkers = ['书名', '作者', '标签', '推荐指数', '一共描写'].filter((marker) => content.includes(marker)).length;
   return row.comment_type === '书评'
-    && /书名|作者|标签|推荐指数|简介|一共描写/.test(content)
+    && metaMarkers >= 2
     && !/喜欢|不足|优点|缺点|节奏|人物|剧情|文笔|逻辑/.test(content.slice(-120));
 }
 
 function hasNegativeSignal(row: SourceRow) {
-  return /垃圾|烂|无语|笑话|放.*屁|恶心|讨厌|失望|崩|bug|槽点|不行|离谱|蠢|傻|喷|骂|膈应|尴尬/.test(row.comment_content);
+  return /垃圾|无语|笑话|放.*屁|恶心|讨厌|失望|崩|bug|槽点|不行|蠢|傻|喷|骂|膈应|尴尬|很烂|太烂|烂透/.test(row.comment_content);
 }
 
 function isPotentialValuableShort(row: SourceRow) {
@@ -196,7 +198,7 @@ function diagnosticForRow(row: SourceRow): DiagnosticRow[] {
   if (isBookMetadata(row)) {
     push('书评元数据罗列', '书籍信息罗列不能替代阅读评价，缺少作品判断和推荐理由', '30-49', row.emotion_type || '中性', '书评高分需要作品整体判断、具体优缺点和阅读价值');
   }
-  if (hasNegativeSignal(row) && row.emotion_score >= 70) {
+  if (hasNegativeSignal(row) && (row.emotion_type === '正向' || row.emotion_score >= 80)) {
     push('负向吐槽情绪偏高', '反问、粗口、吐槽和质疑表达的是负向或中性偏负，不应因互动感判正向', row.quality_score >= 70 ? '50-79 视信息量' : row.quality_level, '负向 或 中性', '情绪分只判断表达情绪，不受互动强度加成');
   }
   if (isPotentialValuableShort(row)) {
